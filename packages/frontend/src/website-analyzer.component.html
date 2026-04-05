@@ -1,0 +1,20 @@
+<div class="tab-content">
+  <h3>Analyze Website for URL Generation</h3>
+  <div class="input-section">
+    <input type="url" [(ngModel)]="websiteUrl" placeholder="Enter website URL" class="url-input">
+    <button (click)="analyzeWebsite()" [disabled]="!websiteUrl || isAnalyzing" class="analyze-btn">
+      {{ isAnalyzing ? 'Analyzing...' : 'Analyze Website' }}
+    </button>
+  </div>
+  <div class="status">
+    <strong>Status:</strong> {{ analysisStatus }}
+  </div>
+  <div class="results" *ngIf="analyzedSchemas.length > 0">
+    <h4>Generated URL Schemas:</h4>
+    <div *ngFor="let schema of analyzedSchemas" class="schema-item">
+      <h5>{{ schema.name }}</h5>
+      <p>Tags: {{ schema.tags.join(', ') }}</p>
+      <p>Schema: {{ getSchemaPreview(schema) }}</p>
+    </div>
+  </div>
+</div>

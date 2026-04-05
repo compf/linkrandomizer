@@ -1,0 +1,21 @@
+<div class="app-container">
+  <h1>Link Randomizer</h1>
+  <div class="tabs">
+    <button
+      [class.active]="activeTab === 'generator'"
+      (click)="activeTab = 'generator'"
+      class="tab-button">
+      Generate URLs
+    </button>
+    <button
+      [class.active]="activeTab === 'analyzer'"
+      (click)="activeTab = 'analyzer'"
+      class="tab-button">
+      Analyze Website
+    </button>
+  </div>
+  <div class="tab-container">
+    <app-url-generator *ngIf="activeTab === 'generator'"></app-url-generator>
+    <app-website-analyzer *ngIf="activeTab === 'analyzer'"></app-website-analyzer>
+  </div>
+</div>

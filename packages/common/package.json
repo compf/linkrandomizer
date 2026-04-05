@@ -1,0 +1,16 @@
+{
+  "name": "@linkrandomizer/common",
+  "version": "0.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "gitgraph-x-2": "file:../..",
+    "zod": "^4.3.6"
+  }
+}

@@ -1,0 +1,11 @@
+#websites{
+    float: right;
+}
+#tags{
+    float: left;
+    margin-left: 20px;
+}
+#websites,#tags{
+    overflow-y: scroll;
+    height:1000px;
+}

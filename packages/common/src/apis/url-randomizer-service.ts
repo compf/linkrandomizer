@@ -1,0 +1,26 @@
+import { Website } from "../models/urls";
+import { unsupported } from "./abstract-service"
+
+
+
+export const UrlRandomizerServiceSchema = {
+    sendToBackend: {
+        generateRandomUrls: (data: { website: Website; count: number }): string[] => unsupported(),
+        analyzeWebsite: (data: { url: string; existingLinks: string[] }): void => unsupported(),
+        openUrlInBrowser: (data: { url: string }): void => unsupported()
+    },
+
+    invokeFromBackend: {
+        getAvailableWebsites: (): Promise<Website[]> => unsupported(),
+      
+        saveWebsites: (): Promise<void> => unsupported()
+    },
+
+    eventFromBackend: {
+        randomUrlsGenerated: (urls: string[], callback?: (urls: string[]) => void): void => unsupported(),
+        websiteAnalysisComplete: (schemas: Website[], callback?: (schemas: Website[]) => void): void => unsupported(),
+        websiteAnalysisStatus: (status: string, callback?: (status: string) => void): void => unsupported()
+    }
+}
+
+export type UrlRandomizerService = typeof UrlRandomizerServiceSchema

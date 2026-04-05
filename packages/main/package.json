@@ -1,0 +1,21 @@
+{
+  "name": "@linkrandomizer/main",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "launcher.cjs",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "npx electron ."
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "electron": "^26.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@linkrandomizer/common": "file:../common",
+    "openai": "^6.32.0",
+    "playwright": "^1.58.2",
+    "zod": "^4.3.6"
+  }
+}

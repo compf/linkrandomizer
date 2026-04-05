@@ -1,0 +1,7 @@
+.tab-content { padding: 20px; }
+.input-section { display: flex; gap: 10px; margin-bottom: 20px; }
+.url-input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+.analyze-btn { padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+.analyze-btn:disabled { background: #ccc; cursor: not-allowed; }
+.results { margin-top: 20px; }
+.schema-item { border: 1px solid #eee; padding: 10px; margin-bottom: 10px; border-radius: 4px; }

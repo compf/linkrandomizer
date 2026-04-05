@@ -1,0 +1,7 @@
+.app-container { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; }
+h1 { text-align: center; color: #333; }
+.tabs { display: flex; border-bottom: 1px solid #ccc; margin-bottom: 20px; }
+.tab-button { padding: 10px 20px; border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; }
+.tab-button.active { border-bottom-color: #007bff; color: #007bff; }
+.tab-button:hover { background: #f5f5f5; }
+.tab-container { min-height: 500px; }

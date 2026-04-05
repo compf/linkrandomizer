@@ -1,0 +1,17 @@
+<div class="tab-content">
+  <h3>Generate Random URLs</h3>
+  <div id="tags" style="float: left;">
+    <h4>Filter by tags</h4>
+    <div *ngFor="let tag of allTags(); track tag">
+      <input type="checkbox" [(checked)]="selectedTags[tag]" (change)="toggleTagFilter(tag, $event.target.checked)">{{tag}}
+    </div>
+  </div>
+  <div id="websites" style="float: left; margin-left: 20px;">
+    @for( url of generatedUrls(); track url){
+      <div>
+        <input type="button" [value]="url" (click)="openUrl(url)"/>
+      </div>
+    }
+      </div>
+  
+</div>
