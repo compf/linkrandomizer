@@ -1,4 +1,4 @@
-import { UrlRandomizerServiceSchema } from "./url-randomizer-service";
+import { UrlRandomizerServiceSchema } from "./url-randomizer-service.js";
 
 export const unsupported=()=>{
 	throw new Error();

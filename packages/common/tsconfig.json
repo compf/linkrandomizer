@@ -1,12 +1,15 @@
 {
   "compilerOptions": {
-    "target": "ES2019",
-    "module": "CommonJS",
+    "target": "esnext",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "declaration": true,
+    "declarationMap": true,
     "outDir": "dist",
     "rootDir": "src",
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "strict": true
   },
   "include": ["src"]
 }

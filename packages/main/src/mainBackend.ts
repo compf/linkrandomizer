@@ -1,7 +1,6 @@
 import { app, BrowserWindow, ipcMain, Menu } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { myFunction } from '../../common/dist/index.js';
 import { UrlRandomizerHandler } from './handlers/url-randomizer-handler.js';
 import { loadWebsites } from './handlers/websites-data.js';
 const __filename = fileURLToPath(import.meta.url);

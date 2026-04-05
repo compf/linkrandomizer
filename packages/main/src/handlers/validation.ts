@@ -1,5 +1,4 @@
-import type { Website } from '../../../common/dist//models/urls.js';
-import type { RandomURLPart } from "@linkrandomizer/common"
+import type { RandomURLPart, Website } from '@linkrandomizer/common';
 export const isValidRandomURLVariable = (raw: any): raw is RandomURLPart => {
     if (!raw || typeof raw !== 'object' || typeof raw.name !== 'string') return false;
     if (raw.name === 'randomFromRange') return typeof raw.min === 'number' && typeof raw.maxExclusive === 'number' && typeof raw.variableName === 'string';

@@ -1,11 +1,10 @@
 import { shell } from 'electron';
-import type { UrlRandomizerService } from '../../../common/dist/index.js';
-import { generateRandomURL,  type Website } from '@linkrandomizer/common';
 import { chromium } from 'playwright';
 import { sampleWebsites, saveWebsites, loadWebsites, addWebsite } from './websites-data.js';
 import { performInteractiveAnalysis } from './ai-analysis.js';
 import { exec } from 'child_process';
 import { executeBrowserAction, type GetLinksAction } from './actions.js';
+import { generateRandomURL, type Website } from '@linkrandomizer/common';
 
 export const UrlRandomizerHandler = {
     sendToBackend: {

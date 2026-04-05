@@ -1,4 +1,3 @@
-import type { Website } from '../../../common/dist/models/urls.js';
 import type { Page } from 'playwright';
 import OpenAI from 'openai';
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
@@ -8,8 +7,8 @@ import { opennAI_API_KEY } from '../config.js';
 import { url } from 'inspector';
 import {z} from 'zod';
 import { BrowserActionSchema, executeBrowserAction } from './actions.js';
-import { WebsiteSchema } from "@linkrandomizer/common"
 import { exec } from 'child_process';
+import { type Website, WebsiteSchema } from '@linkrandomizer/common';
 
 // Initialize OpenAI
 const openai = new OpenAI({

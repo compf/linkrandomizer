@@ -2,12 +2,11 @@
 // Node.JS and Electron remote APIs are only available in this script
 
 
-
+type SendToBackendType = import('@linkrandomizer/common').SendToBackendType;
+type EventFromBackendType = import('@linkrandomizer/common').EventFromBackendType;
+type InvokeFromBackendType = import('@linkrandomizer/common').InvokeFromBackendType;
 const  { contextBridge, ipcRenderer }  =require('electron');
 type IpcRendererEvent = import("electron").IpcRendererEvent;
-type SendToBackendType = import("../../common/dist/index.js").SendToBackendType;
-type EventFromBackendType = import("../../common/dist/index.js").EventFromBackendType;
-type InvokeFromBackendType = import("../../common/dist/index.js").InvokeFromBackendType;
 const logging = (text: string) => {
 	window.addEventListener("DOMContentLoaded", () => {
 		document.body.innerHTML = `<div>${text}</div>`;

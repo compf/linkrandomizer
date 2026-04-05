@@ -1,8 +1,7 @@
-import type { Website } from '../../../common/dist/models/urls.js';
 import fs from 'fs';
 import path from 'path';
 import { app } from 'electron';
-import type { RandomURLPart } from "@linkrandomizer/common";
+import type { Website } from '@linkrandomizer/common';
 // Sample websites for demonstration
 let sampleWebsites: Website[] = [
    

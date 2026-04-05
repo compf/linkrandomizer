@@ -54,6 +54,7 @@ class UrlGeneratorComponent implements OnInit {
    const tags: Set<string> = new Set();
     try {
       const websites: Website[] = await (window as any).api.invokeFromBackend.getAvailableWebsites();
+      console.log("Websites for tag extraction:", websites);
       websites.forEach(website => website.tags.forEach(tag => tags.add(tag)));
       this.allTags.set(Array.from(tags));
     } catch (error) {

@@ -1,5 +1,5 @@
-import { Website } from "../models/urls";
-import { unsupported } from "./abstract-service"
+import { Website } from "../models/website_schemas.js";
+import { unsupported } from "./abstract-service.js"
 
 
 
