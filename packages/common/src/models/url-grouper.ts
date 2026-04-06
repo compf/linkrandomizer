@@ -2,7 +2,8 @@ import { ur } from "zod/v4/locales"
 import { GeneratedURL } from "./generated_url.js"
 
 export type GroupedURl={
-    groupName:string,
+    groupKey:string,
+    groupValue:string,
     children:GroupedURl[] | null,
     urls:GeneratedURL[]
 }
@@ -14,7 +15,8 @@ export interface UrlGrouper {
 export class NoGrouping implements UrlGrouper {
     group(urls: GeneratedURL[]): GroupedURl {
         return {
-            groupName: "All URLs",
+            groupKey: "",
+            groupValue: "All URLs",
             children: null,
             urls
         }
@@ -25,12 +27,14 @@ export class  GroupByVariables implements UrlGrouper {
 
     constructor(private relevantKeys:string[]) {}
 
-    private findOrCreateGroupRec(groupedURL: GroupedURl,  values: string[],depth:number, url: GeneratedURL){
+    private findOrCreateGroupRec(groupedURL: GroupedURl,  values: string[],variables:string[],depth:number, url: GeneratedURL){
         const relevantValue=values[depth]
-        let child=groupedURL.children?.find(c=>c.groupName===relevantValue)
+        const relevantVariable=variables[depth]
+        let child=groupedURL.children?.find(c=>c.groupKey===relevantVariable && c.groupValue===relevantValue)
         if(!child){
             child={
-                groupName: relevantValue,
+                groupKey: relevantVariable,
+                groupValue: relevantValue,
                 children: [],
                 urls: []
             }
@@ -40,7 +44,7 @@ export class  GroupByVariables implements UrlGrouper {
         if(depth>=values.length-1){
             child.urls.push(url)
         }else{
-            this.findOrCreateGroupRec(child, values, depth+1, url)
+            this.findOrCreateGroupRec(child, values, variables, depth+1, url)
         }
     }
 
@@ -49,14 +53,15 @@ export class  GroupByVariables implements UrlGrouper {
 
         const variableNames=Array.from(new Set(urls.flatMap(u=>Object.keys(u.variables)))).filter((it)=>this.relevantKeys.includes(it)).sort((a,b)=>this.relevantKeys.indexOf(a)-this.relevantKeys.indexOf(b));
        const res: GroupedURl ={
-            groupName: "All URLs",
+            groupKey: "",
+            groupValue: "All URLs",
             children:[],
             urls:[]
         }
 
         for(const url of urls){
-         const values=variableNames.map((it)=>url.variables[it]).filter(v=>v!==undefined).map(v=>String(v));
-        this.findOrCreateGroupRec(res, values, 0, url)
+         const values=variableNames.map((it)=>url.variables[it]).filter(v=>v!==undefined).map(v=>v+"")
+        this.findOrCreateGroupRec(res, values, variableNames.filter((v)=>url.variables[v]!==undefined), 0, url)
         }
         return res;
        

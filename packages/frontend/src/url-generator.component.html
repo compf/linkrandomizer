@@ -15,7 +15,11 @@
             {{treeControl.isExpanded(node) ? 'V' : '&#9654;'}}
           </mat-icon>
         </button>
-        {{getNodeLabel(node)}}
+        <sub>
+          {{node.groupKey}} 
+        </sub>
+        <span style="margin-left: 1px;"></span>
+        <span>{{node.groupValue}}</span>
       </mat-tree-node>
       <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
         <button (click)="openUrl(getNodeLabel(node))" mat-icon-button>{{getNodeLabel(node)}}</button>

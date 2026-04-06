@@ -24,9 +24,10 @@ class UrlGeneratorComponent implements OnInit {
   allWebsites=signal<Website[]>([])
   allTags=signal<string[]>([])
   selectedTags: { [key: string]: boolean } = {};
-  urlCount = 100;
+  urlCount = 1000;
   groupedUrls=signal<GroupedURl[]>([{
-    groupName:"",
+    groupKey:"",
+    groupValue:"All URLs",
     children:[],
     urls:[]
   }]);
@@ -45,8 +46,8 @@ class UrlGeneratorComponent implements OnInit {
   treeControl = new NestedTreeControl<GroupedURl|GeneratedURL>(node => this.childrenAccessor(node));
 
   getNodeLabel(node: GroupedURl | GeneratedURL): string {
-    if ('groupName' in node) {
-      return node.groupName;
+    if ('groupKey' in node) {
+      return node.groupKey;
     } else if ('url' in node) {
       console.log("is url")
       return node.url;
