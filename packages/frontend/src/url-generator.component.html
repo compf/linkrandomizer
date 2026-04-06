@@ -6,12 +6,22 @@
       <input type="checkbox" [(checked)]="selectedTags[tag]" (change)="toggleTagFilter(tag, $event.target.checked)">{{tag}}
     </div>
   </div>
-  <div id="websites" style="float: left; margin-left: 20px;">
-    @for( url of generatedUrls(); track url){
-      <div>
-        <input type="button" [value]="url" (click)="openUrl(url)"/>
-      </div>
-    }
-      </div>
+  <div id="websites" style="float: left; margin-left: 20px;width:600px">
+    <mat-tree [treeControl]="treeControl" [childrenAccessor]="childrenAccessor" [dataSource]="groupedUrls()" >
+       <mat-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding>
+        <button mat-icon-button matTreeNodeToggle
+                [attr.aria-label]="'toggle ' + node.groupName">
+          <mat-icon>
+            {{treeControl.isExpanded(node) ? 'V' : '&#9654;'}}
+          </mat-icon>
+        </button>
+        {{getNodeLabel(node)}}
+      </mat-tree-node>
+      <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
+        <button (click)="openUrl(getNodeLabel(node))" mat-icon-button>{{getNodeLabel(node)}}</button>
+        
+      </mat-tree-node>
+     
+    </mat-tree>
   
 </div>

@@ -4,8 +4,12 @@ import { bootstrapApplication } from '@angular/platform-browser';
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { generateRandomURL, myFunction, Website } from '@linkrandomizer/common';
-
+import { generateRandomURL, GroupedURl, myFunction, Website } from '@linkrandomizer/common';
+import { GeneratedURL } from '@linkrandomizer/common';
+import { GroupByVariables } from '@linkrandomizer/common';
+import {MatTreeModule} from '@angular/material/tree';
+import {MatIconModule} from '@angular/material/icon';
+import { FlatTreeControl, NestedTreeControl } from '@angular/cdk/tree';
 const textValue = myFunction({ id: 2, name: 'Angular' });
 console.log('frontend.myFunction ->', textValue);
 
@@ -14,16 +18,42 @@ console.log('frontend.myFunction ->', textValue);
   templateUrl: './url-generator.component.html',
   styleUrls: ['./url-generator.component.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule]
+  imports: [CommonModule, FormsModule, MatTreeModule,MatIconModule]
 })
 class UrlGeneratorComponent implements OnInit {
   allWebsites=signal<Website[]>([])
   allTags=signal<string[]>([])
   selectedTags: { [key: string]: boolean } = {};
   urlCount = 100;
-  generatedUrls=signal<string[]>([]);
+  groupedUrls=signal<GroupedURl[]>([{
+    groupName:"",
+    children:[],
+    urls:[]
+  }]);
 
 
+  hasChild = (_: number, node: GroupedURl) => {
+    
+    return !!node.children && node.children.length > 0 || !!node.urls && node.urls.length > 0;};
+
+  childrenAccessor = (node: GroupedURl | GeneratedURL) => {
+    const subNodes=(node as GroupedURl)?.children ?? []
+    const urls=(node as GroupedURl)?.urls ?? []
+    console.log("urls",urls)
+    return [...subNodes, ...urls];
+  }
+  treeControl = new NestedTreeControl<GroupedURl|GeneratedURL>(node => this.childrenAccessor(node));
+
+  getNodeLabel(node: GroupedURl | GeneratedURL): string {
+    if ('groupName' in node) {
+      return node.groupName;
+    } else if ('url' in node) {
+      console.log("is url")
+      return node.url;
+    }
+    console.warn("Unknown node type:", node);
+    return '';
+  }
   async ngOnInit() {
      await this.loadWebsites();
 
@@ -66,10 +96,11 @@ class UrlGeneratorComponent implements OnInit {
     const selectedTagList = Object.keys(this.selectedTags).filter(tag => this.selectedTags[tag]);
     console.log("Filtering websites with selected tags:", selectedTagList);
     if(selectedTagList.length === 0){
+      console.warn("No tags selected, returning empty website list");
      return []
     }
     try {
-      const filteredWebsites=this.allWebsites().filter(w => selectedTagList.every(t => w.tags.includes(t)))
+      const filteredWebsites=this.allWebsites().filter(w => selectedTagList.some(t => w.tags.includes(t)))
       console.log("filtered websites:", filteredWebsites)
       return filteredWebsites;
       return 
@@ -79,17 +110,26 @@ class UrlGeneratorComponent implements OnInit {
   }
 
   async generateUrls() {
-    this.generatedUrls.set([]);
+    try{
+    console.log("started generating URLs with count:", this.urlCount);
+    const generated: GeneratedURL[] = [];
     const  filteredWebsites=await this.filterWebsites();
     if(filteredWebsites.length===0){
+      console.warn("No websites match the selected tags, skipping URL generation");
       return;
     }
     for(let i=0;i<this.urlCount;i++){
       const randomWebsite=filteredWebsites[Math.floor(Math.random()*filteredWebsites.length)]
       const url=generateRandomURL(randomWebsite);
-      this.generatedUrls.update(urls=>[...urls,url])
+      generated.push(url);
     }
-    // this.generatedUrls.set(generated);
+    const grouper=new GroupByVariables(["year","month"]);
+    const grouped=grouper.group(generated);
+    console.log("Generated URLs grouped:", grouped);
+    this.groupedUrls.set([grouped]);
+  }  catch(error){
+    console.error("Error generating URLs:", error);
+  }
   }
   
 

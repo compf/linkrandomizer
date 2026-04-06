@@ -13,7 +13,6 @@ const logging = (text: string) => {
 	});
 };
 const sendToBackendServices:Record<keyof SendToBackendType,null>={
-	generateRandomUrls:null,
 	analyzeWebsite:null,
 	openUrlInBrowser:null
 }

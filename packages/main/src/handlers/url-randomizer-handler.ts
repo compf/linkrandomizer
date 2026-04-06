@@ -8,13 +8,7 @@ import { generateRandomURL, type Website } from '@linkrandomizer/common';
 
 export const UrlRandomizerHandler = {
     sendToBackend: {
-        generateRandomUrls: (data: { website: Website; count: number }, event: any) => {
-            const urls: string[] = [];
-            for (let i = 0; i < data.count; i++) {
-                urls.push(generateRandomURL(data.website));
-            }
-            event.sender.send('randomUrlsGenerated', urls);
-        },
+      
 
         analyzeWebsite: async (data: { url: string; existingLinks: string[] }, event: any) => {
             const status = (text: string) => event.sender.send('websiteAnalysisStatus', text);

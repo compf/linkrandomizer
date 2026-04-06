@@ -1,4 +1,5 @@
 import {z} from 'zod';
+import { GeneratedURL } from './generated_url.js';
 
 
 export const RandomFromRangeSchema=z.object({
@@ -75,7 +76,7 @@ export type VariableFormatting=z.infer<typeof VariableFormattingSchema>
 export type Website=z.infer<typeof WebsiteSchema>
 
 
-export const generateRandomURL=(website:Website)=>{
+export const generateRandomURL=(website:Website):GeneratedURL=>{
     const variables:Record<string,unknown>={}
     
     // Execute all variable generation
@@ -95,7 +96,7 @@ export const generateRandomURL=(website:Website)=>{
                const asString=v+""
 
             if(schema.padding){
-               url+=asString.padStart(schema.padding)
+               url+=asString.padStart(schema.padding,"0")
                 
             }
             else{
@@ -103,5 +104,9 @@ export const generateRandomURL=(website:Website)=>{
             }
         }
     }
-    return url
+    return {
+        url,
+        variables,
+        website
+    }
 }

@@ -5,7 +5,6 @@ import { unsupported } from "./abstract-service.js"
 
 export const UrlRandomizerServiceSchema = {
     sendToBackend: {
-        generateRandomUrls: (data: { website: Website; count: number }): string[] => unsupported(),
         analyzeWebsite: (data: { url: string; existingLinks: string[] }): void => unsupported(),
         openUrlInBrowser: (data: { url: string }): void => unsupported()
     },
