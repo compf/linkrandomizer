@@ -23,6 +23,7 @@
       </mat-tree-node>
       <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
         <button (click)="openUrl(getNodeLabel(node))" mat-icon-button>{{getNodeLabel(node)}}</button>
+        <button (click)="openChatDialog(node)" mat-icon-button><mat-icon>chat</mat-icon></button>
         
       </mat-tree-node>
      

@@ -1,0 +1,15 @@
+<h2 mat-dialog-title>Chat</h2>
+<mat-dialog-content>
+    @for( message of messages(); track message) {
+        <div class="message" [class]="message.sender === 'user' ? 'user-message' : 'assistant-message'" style="margin-bottom: 10px;">
+            <b>{{message.sender}}:</b> {{message.text}}
+        </div>
+    }
+    <div style="display: flex; margin-top: 10px;">
+        <input [(ngModel)]="userInput" placeholder="Type your message..." style="flex: 1; margin-right: 10px;" (keydown.enter)="sendMessage()">
+        <button mat-raised-button color="primary" (click)="sendMessage()">Send</button>
+    </div>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Close</button>
+</mat-dialog-actions>

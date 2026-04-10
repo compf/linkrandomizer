@@ -25,6 +25,7 @@ const EventFromBackendServices:Record<keyof EventFromBackendType,null>={
 
 const InvokeFromBackendServices:Record<keyof InvokeFromBackendType,null>={
 	getAvailableWebsites:null,
+	explainUrl:null,
 	
 	saveWebsites:null
 }

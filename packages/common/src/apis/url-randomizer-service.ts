@@ -1,3 +1,4 @@
+import { GeneratedURL } from "../models/generated_url.js";
 import { Website } from "../models/website_schemas.js";
 import { unsupported } from "./abstract-service.js"
 
@@ -11,7 +12,7 @@ export const UrlRandomizerServiceSchema = {
 
     invokeFromBackend: {
         getAvailableWebsites: (): Promise<Website[]> => unsupported(),
-      
+        explainUrl: (data: { url: GeneratedURL; messages: { text: string, sender: "user" | "assistant" }[] }): Promise<string> => unsupported(),
         saveWebsites: (): Promise<void> => unsupported()
     },
 

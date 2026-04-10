@@ -4,7 +4,8 @@ import { sampleWebsites, saveWebsites, loadWebsites, addWebsite } from './websit
 import { performInteractiveAnalysis } from './ai-analysis.js';
 import { exec } from 'child_process';
 import { executeBrowserAction, type GetLinksAction } from './actions.js';
-import { generateRandomURL, type Website } from '@linkrandomizer/common';
+import { generateRandomURL, type GeneratedURL, type Website } from '@linkrandomizer/common';
+import { explainURL } from './explain-url.js';
 
 export const UrlRandomizerHandler = {
     sendToBackend: {
@@ -59,6 +60,7 @@ export const UrlRandomizerHandler = {
                 event.sender.send('websiteAnalysisComplete', schemas);
             }
         },
+ 
 
         openUrlInBrowser: (data: { url: string }) => {
             shell.openExternal(data.url);
@@ -69,6 +71,9 @@ export const UrlRandomizerHandler = {
         getAvailableWebsites: async (): Promise<Website[]> => {
             console.log("getAvailableWebsites called, returning:", sampleWebsites.length, "websites");
             return sampleWebsites;
+        },
+        explainUrl(data: { url: GeneratedURL, messages: { text: string, sender: "user" | "assistant" }[] }) {
+            return explainURL(data.url, data.messages);
         },
 
         saveWebsites: async (): Promise<void> => {

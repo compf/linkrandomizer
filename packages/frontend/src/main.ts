@@ -1,7 +1,7 @@
 import 'zone.js';
 import '@angular/compiler';
 import { bootstrapApplication } from '@angular/platform-browser';
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { generateRandomURL, GroupedURl, myFunction, Website } from '@linkrandomizer/common';
@@ -10,6 +10,8 @@ import { GroupByVariables } from '@linkrandomizer/common';
 import {MatTreeModule} from '@angular/material/tree';
 import {MatIconModule} from '@angular/material/icon';
 import { FlatTreeControl, NestedTreeControl } from '@angular/cdk/tree';
+import { MatDialog } from '@angular/material/dialog';
+import { ChatDialogComponent } from "./components/chat.component/chat.component";
 const textValue = myFunction({ id: 2, name: 'Angular' });
 console.log('frontend.myFunction ->', textValue);
 
@@ -40,7 +42,6 @@ class UrlGeneratorComponent implements OnInit {
   childrenAccessor = (node: GroupedURl | GeneratedURL) => {
     const subNodes=(node as GroupedURl)?.children ?? []
     const urls=(node as GroupedURl)?.urls ?? []
-    console.log("urls",urls)
     return [...subNodes, ...urls];
   }
   treeControl = new NestedTreeControl<GroupedURl|GeneratedURL>(node => this.childrenAccessor(node));
@@ -49,7 +50,6 @@ class UrlGeneratorComponent implements OnInit {
     if ('groupKey' in node) {
       return node.groupKey;
     } else if ('url' in node) {
-      console.log("is url")
       return node.url;
     }
     console.warn("Unknown node type:", node);
@@ -132,10 +132,18 @@ class UrlGeneratorComponent implements OnInit {
     console.error("Error generating URLs:", error);
   }
   }
+
+  private dialog=inject(MatDialog)
   
 
   openUrl(url: string) {
     (window as any).api.sendToBackend.openUrlInBrowser({ url });
+  }
+  openChatDialog(url: GeneratedURL) {
+    console.log("Opening chat dialog for URL:", url);
+    this.dialog.open(ChatDialogComponent, {
+      data: url
+    });
   }
 }
 
