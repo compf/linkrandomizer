@@ -5,3 +5,4 @@ src/config.ts
 *.js
 packages/main/src/config.ts
 packages/frontend/.angular
+packages/main/src/data/internal-websites.ts

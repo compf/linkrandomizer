@@ -2,6 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import { app } from 'electron';
 import type { Website } from '@linkrandomizer/common';
+
+
 // Sample websites for demonstration
 let sampleWebsites: Website[] = [
     {
@@ -20,6 +22,10 @@ let sampleWebsites: Website[] = [
     }
    
 ];
+import("./internal-websites.js").then((module)=>{
+    sampleWebsites.push(...module.internalWebsites);
+    console.log("Loaded internal websites, total count:", sampleWebsites.length);
+});
 
 const getWebsitesFilePath = (): string => {
     return path.join(app.getPath('userData'), 'websites.json');
