@@ -1,8 +1,8 @@
 import { app, BrowserWindow, ipcMain, Menu } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { UrlRandomizerHandler } from './handlers/url-randomizer-handler.js';
-import { loadWebsites } from './handlers/websites-data.js';
+import { UrlRandomizerHandler } from './handlers/website-handler.js';
+import { loadWebsites } from './data/websites-data.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 let controlWindow: BrowserWindow|undefined=undefined
@@ -25,7 +25,6 @@ const initIPC=()=>{
             try{
                 const result = (method as any)(args, event);
                 if(result !== undefined){
-                    console.log("ipcMain sending result back to sender", key, result);
                     event.sender.send('loadProject', result);
                 }
             }catch(err){
@@ -38,7 +37,6 @@ const initIPC=()=>{
         const method=invokeFromBackend[key as keyof typeof invokeFromBackend];
         console.log("Registering invoke handler:", key, typeof method);
         ipcMain.handle(key, async (event, args) => {
-            console.log("ipcMain handle",key,args)
             try{
                 return await (method as any)(args);
             }catch(err){

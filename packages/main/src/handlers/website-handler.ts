@@ -1,11 +1,11 @@
 import { shell } from 'electron';
 import { chromium } from 'playwright';
-import { sampleWebsites, saveWebsites, loadWebsites, addWebsite } from './websites-data.js';
-import { performInteractiveAnalysis } from './ai-analysis.js';
+import { sampleWebsites, saveWebsites, loadWebsites, addWebsite } from '../data/websites-data.js';
+import { performInteractiveAnalysis } from '../ai/ai-assisted-schema-finder.js';
 import { exec } from 'child_process';
-import { executeBrowserAction, type GetLinksAction } from './actions.js';
+import { executeBrowserAction, type GetLinksAction } from '../agent/actions.js';
 import { generateRandomURL, type GeneratedURL, type Website } from '@linkrandomizer/common';
-import { explainURL } from './explain-url.js';
+import { explainURL } from '../ai/explain-url.js';
 
 export const UrlRandomizerHandler = {
     sendToBackend: {
@@ -62,9 +62,7 @@ export const UrlRandomizerHandler = {
         },
  
 
-        openUrlInBrowser: (data: { url: string }) => {
-            shell.openExternal(data.url);
-        }
+       
     },
 
     invokeFromBackend: {

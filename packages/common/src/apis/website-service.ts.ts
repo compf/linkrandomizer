@@ -4,15 +4,13 @@ import { unsupported } from "./abstract-service.js"
 
 
 
-export const UrlRandomizerServiceSchema = {
+export const WebsiteServiceSchema = {
     sendToBackend: {
         analyzeWebsite: (data: { url: string; existingLinks: string[] }): void => unsupported(),
-        openUrlInBrowser: (data: { url: string }): void => unsupported()
     },
 
     invokeFromBackend: {
         getAvailableWebsites: (): Promise<Website[]> => unsupported(),
-        explainUrl: (data: { url: GeneratedURL; messages: { text: string, sender: "user" | "assistant" }[] }): Promise<string> => unsupported(),
         saveWebsites: (): Promise<void> => unsupported()
     },
 
@@ -23,4 +21,4 @@ export const UrlRandomizerServiceSchema = {
     }
 }
 
-export type UrlRandomizerService = typeof UrlRandomizerServiceSchema
+export type WebsiteService = typeof WebsiteServiceSchema

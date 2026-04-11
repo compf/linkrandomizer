@@ -1,18 +1,21 @@
-import { UrlRandomizerServiceSchema } from "./url-randomizer-service.js";
-
+import { WebsiteServiceSchema } from "./website-service.ts.js";
+import { UrlServiceSchema } from "./url-service.js";
 export const unsupported=()=>{
 	throw new Error();
 }
 export const  sendToBackend={
-	...UrlRandomizerServiceSchema.sendToBackend
+	...WebsiteServiceSchema.sendToBackend,
+	...UrlServiceSchema.sendToBackend
 }
 
 export const EventFromBackend={
-	...UrlRandomizerServiceSchema.eventFromBackend
+	...WebsiteServiceSchema.eventFromBackend,
+	...UrlServiceSchema.eventFromBackend
 }
 
 export const InvokeFromBackend={
-	...UrlRandomizerServiceSchema.invokeFromBackend
+	...WebsiteServiceSchema.invokeFromBackend,
+	...UrlServiceSchema.invokeFromBackend
 }
 
 export const ElectronServiceScheme={

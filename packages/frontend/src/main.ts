@@ -4,7 +4,7 @@ import { bootstrapApplication } from '@angular/platform-browser';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { generateRandomURL, GroupedURl, myFunction, Website } from '@linkrandomizer/common';
+import { generateRandomURL, GroupedURl, Website } from '@linkrandomizer/common';
 import { GeneratedURL } from '@linkrandomizer/common';
 import { GroupByVariables } from '@linkrandomizer/common';
 import {MatTreeModule} from '@angular/material/tree';
@@ -12,8 +12,7 @@ import {MatIconModule} from '@angular/material/icon';
 import { FlatTreeControl, NestedTreeControl } from '@angular/cdk/tree';
 import { MatDialog } from '@angular/material/dialog';
 import { ChatDialogComponent } from "./components/chat.component/chat.component";
-const textValue = myFunction({ id: 2, name: 'Angular' });
-console.log('frontend.myFunction ->', textValue);
+
 
 @Component({
   selector: 'app-url-generator',
