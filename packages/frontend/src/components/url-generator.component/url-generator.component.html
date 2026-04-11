@@ -1,32 +1,44 @@
 <div class="tab-content">
   <h3>Generate Random URLs</h3>
-  <div id="tags" style="float: left;">
-    <h4>Filter by tags</h4>
-    <div *ngFor="let tag of allTags(); track tag">
-      <input type="checkbox" [(checked)]="selectedTags[tag]" (change)="toggleTagFilter(tag, $event.target.checked)">{{tag}}
+
+  <div class="content-container">
+    <div id="tags">
+      <h4>Filter by tags</h4>
+      <div *ngFor="let tag of allTags()" class="tag-checkbox">
+        <input type="checkbox" [(checked)]="selectedTags[tag]" (change)="toggleTagFilter(tag, $event.target.checked)" />
+        <label>{{ tag }}</label>
+      </div>
+    </div>
+
+    <div id="websites">
+    <mat-tree class="group-tree" [treeControl]="treeControl" [childrenAccessor]="childrenAccessor" [dataSource]="groupedUrls()">
+      <mat-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding>
+        <button mat-icon-button matTreeNodeToggle aria-label="toggle {{ node.groupValue }}">
+          <mat-icon>{{ treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right' }}</mat-icon>
+        </button>
+        <div class="group-node-content">
+          <div class="group-heading">
+            <span class="group-value">{{ node.groupValue }}</span>
+            <span class="group-meta" *ngIf="node.groupKey">{{ node.groupKey }}</span>
+          </div>
+          <div class="group-stats">
+            {{ getTotalUrlCount(node) }} URLs
+            <span *ngIf="node.children?.length">• {{ node.children.length }} groups</span>
+          </div>
+        </div>
+      </mat-tree-node>
+
+      <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
+        <div class="leaf-node">
+          <button class="url-action" (click)="openUrl(getNodeLabel(node))">
+            {{ getNodeLabel(node) }}
+          </button>
+          <button class="chat-action" (click)="openChatDialog(node)" mat-icon-button>
+            <mat-icon>chat</mat-icon>
+          </button>
+        </div>
+      </mat-tree-node>
+    </mat-tree>
     </div>
   </div>
-  <div id="websites" style="float: right; margin-left: 20px;width:600px">
-    <mat-tree [treeControl]="treeControl" [childrenAccessor]="childrenAccessor" [dataSource]="groupedUrls()" >
-       <mat-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding>
-        <button mat-icon-button matTreeNodeToggle
-                [attr.aria-label]="'toggle ' + node.groupName">
-          <mat-icon>
-            {{treeControl.isExpanded(node) ? 'V' : '&#9654;'}}
-          </mat-icon>
-        </button>
-        <sub>
-          {{node.groupKey}} 
-        </sub>
-        <span style="margin-left: 1px;"></span>
-        <span>{{node.groupValue}}</span>
-      </mat-tree-node>
-      <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
-        <button (click)="openUrl(getNodeLabel(node))" mat-icon-button>{{getNodeLabel(node)}}</button>
-        <button (click)="openChatDialog(node)" mat-icon-button><mat-icon>chat</mat-icon></button>
-        
-      </mat-tree-node>
-     
-    </mat-tree>
-  
 </div>

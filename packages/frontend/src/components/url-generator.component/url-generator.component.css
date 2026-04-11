@@ -1,11 +1,149 @@
-#websites{
-    float: right;
+.tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 16px;
 }
-#tags{
-    float: left;
-    margin-left: 20px;
+
+.content-container {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 32px;
+  align-items: start;
 }
-#websites,#tags{
-    overflow-y: scroll;
-    height:1000px;
+
+#tags {
+  padding: 20px;
+  border-radius: 12px;
+  background: #f8f9fa;
+  border: 1px solid #e8eaed;
+  max-height: 1000px;
+  overflow-y: auto;
+  position: sticky;
+  top: 0;
+}
+
+#tags h4 {
+  margin-bottom: 12px;
+}
+
+.tag-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  font-size: 0.95rem;
+}
+
+#websites {
+  padding: 24px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e8eaed;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  max-height: 1000px;
+  overflow: hidden;
+  flex: 1;
+}
+
+.group-tree {
+  max-height: 920px;
+  overflow-y: auto;
+}
+
+.group-node-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  margin-left: 8px;
+}
+
+.group-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-weight: 600;
+}
+
+.group-value {
+  font-size: 1rem;
+  color: #202124;
+}
+
+.group-meta {
+  font-size: 0.75rem;
+  color: #5f6368;
+  background: #e8f0fe;
+  border-radius: 12px;
+  padding: 4px 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.group-stats {
+  color: #5f6368;
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+
+.leaf-node {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  padding-left: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.leaf-node:last-child {
+  border-bottom: none;
+}
+
+.url-action {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  color: #1a73e8;
+  text-align: left;
+  font-size: 0.95rem;
+  cursor: pointer;
+  width: 100%;
+}
+
+.url-action:hover {
+  text-decoration: underline;
+}
+
+.chat-action {
+  color: #4a4a4a;
+}
+
+.mat-tree-node button[mat-icon-button] {
+  min-width: 36px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-action mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
 }

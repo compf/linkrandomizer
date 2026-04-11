@@ -41,13 +41,20 @@ export class UrlGeneratorComponent implements OnInit {
 
   getNodeLabel(node: GroupedURl | GeneratedURL): string {
     if ('groupKey' in node) {
-      return node.groupKey;
+      return node.groupValue;
     } else if ('url' in node) {
       return node.url;
     }
     console.warn("Unknown node type:", node);
     return '';
   }
+
+  getTotalUrlCount(node: GroupedURl): number {
+    const directUrls = node.urls?.length ?? 0;
+    const nestedUrls = node.children?.reduce((sum, child) => sum + this.getTotalUrlCount(child), 0) ?? 0;
+    return directUrls + nestedUrls;
+  }
+
   async ngOnInit() {
      await this.loadWebsites();
 
