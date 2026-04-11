@@ -14,7 +14,13 @@ export const RandomDateSchema=z.object({
     name:z.literal("randomDate"),
     minYear:z.number(),
     maxYearExclusive:z.number(),
-    suffix:z.string().nullable().optional().describe("optional suffix to distinguish variables (e.g. year1, year2)")
+})
+
+export const RandomDateRangeSchema=z.object({
+    name:z.literal("randomDateRange"),
+    minYear:z.number(),
+    maxYearExclusive:z.number(),
+    maxNumberOfDaysToSecondDate:z.number().describe("max number of days to add to the start date to get the end date")
 })
 
 export const RandomFromSelectionSchema=z.object({
@@ -27,14 +33,15 @@ export const WebsiteSchema=z.object({
     name:z.string().describe("unique Name of the website schema"),
     schema:z.array(URLPartSchema).describe("Alternating between fixed string parts and variable parts. The first part must be fixed and start with http or https"),
     tags:z.array(z.string()).describe("Tags to categorize the website"),
-    variables:z.array(z.union([RandomFromRangeSchema,RandomDateSchema,RandomFromSelectionSchema]))
+    variables:z.array(z.union([RandomFromRangeSchema,RandomDateSchema,RandomFromSelectionSchema,RandomDateRangeSchema]))
 })
-export const RandomURLPartSchema=z.union([RandomFromRangeSchema,RandomDateSchema,RandomFromSelectionSchema])
+export const RandomURLPartSchema=z.union([RandomFromRangeSchema,RandomDateRangeSchema,RandomDateSchema,RandomFromSelectionSchema])
 export type RandomURLPart=z.infer<typeof RandomURLPartSchema>
 
 export type RandomFromRange=z.infer<typeof RandomFromRangeSchema>
 export type RandomDate=z.infer<typeof RandomDateSchema>
 export type RandomFromSelection=z.infer<typeof RandomFromSelectionSchema>
+export type RandomDateRange=z.infer<typeof RandomDateRangeSchema>
 
 
 
@@ -56,10 +63,36 @@ const executeRec=(randomURLPart:RandomURLPart,variables:Record<string,unknown>)=
             year=dt.getFullYear()
             month=dt.getMonth()+1
             day=dt.getDate()
-            const suffix=randDate.suffix??""
+            const suffix=""
             variables["year"+suffix]=year
             variables["month"+suffix]=month
             variables["day"+suffix]=day
+        }
+        else if(randomURLPart.name==="randomDateRange"){
+            const randDate=randomURLPart as RandomDateRange
+
+             let year=randDate.minYear+Math.random()*(randDate.maxYearExclusive-randDate.minYear)
+            let month=1+Math.random()*12;
+            let day=1+Math.random()*32;
+            const dt=new Date(year,month,day)
+
+            year=dt.getFullYear()
+            month=dt.getMonth()+1
+            day=dt.getDate()
+
+            const addDays=Math.floor(Math.random()*randomURLPart.maxNumberOfDaysToSecondDate)
+            const dt2=new Date(dt.getTime()+addDays*24*60*60*1000)
+
+            const suffix1="1"
+            const suffix2="2"
+            variables["year"+suffix1]=year
+            variables["month"+suffix1]=month
+            variables["day"+suffix1]=day
+
+            variables["year"+suffix2]=dt2.getFullYear()
+            variables["month"+suffix2]=dt2.getMonth()+1
+            variables["day"+suffix2]=dt2.getDate()
+
         }
         else if(randomURLPart.name==="randomFromSelection"){
             const randSelection=randomURLPart as RandomFromSelection

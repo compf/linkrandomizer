@@ -109,6 +109,12 @@ export class UrlGeneratorComponent implements OnInit {
     const generated: GeneratedURL[] = [];
     const  filteredWebsites=await this.filterWebsites();
     if(filteredWebsites.length===0){
+        this.groupedUrls.set([{
+          groupKey:"",
+          groupValue:"No URLs generated",
+          children:[],
+          urls:[]
+        }])
       console.warn("No websites match the selected tags, skipping URL generation");
       return;
     }

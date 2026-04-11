@@ -6,7 +6,7 @@
       <input type="checkbox" [(checked)]="selectedTags[tag]" (change)="toggleTagFilter(tag, $event.target.checked)">{{tag}}
     </div>
   </div>
-  <div id="websites" style="float: left; margin-left: 20px;width:600px">
+  <div id="websites" style="float: right; margin-left: 20px;width:600px">
     <mat-tree [treeControl]="treeControl" [childrenAccessor]="childrenAccessor" [dataSource]="groupedUrls()" >
        <mat-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding>
         <button mat-icon-button matTreeNodeToggle

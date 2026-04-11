@@ -7,7 +7,7 @@ import { executeBrowserAction, type GetLinksAction } from '../agent/actions.js';
 import { generateRandomURL, type GeneratedURL, type Website } from '@linkrandomizer/common';
 import { explainURL } from '../ai/explain-url.js';
 
-export const UrlRandomizerHandler = {
+export const WebsiteHandler = {
     sendToBackend: {
       
 

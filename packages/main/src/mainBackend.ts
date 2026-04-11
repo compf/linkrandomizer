@@ -1,17 +1,21 @@
 import { app, BrowserWindow, ipcMain, Menu } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { UrlRandomizerHandler } from './handlers/website-handler.js';
+import { WebsiteHandler } from './handlers/website-handler.js';
 import { loadWebsites } from './data/websites-data.js';
+import { UrlHandler } from './handlers/url-handler.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 let controlWindow: BrowserWindow|undefined=undefined
 const initIPC=()=>{
     const sendToBackend={
-        ...UrlRandomizerHandler.sendToBackend
+        ...WebsiteHandler.sendToBackend,
+        ...UrlHandler.sendToBackend
+        
     }
     const invokeFromBackend={
-        ...UrlRandomizerHandler.invokeFromBackend
+        ...WebsiteHandler.invokeFromBackend,
+        ...UrlHandler.invokeFromBackend
     }
 
     console.log("sendToBackend keys:", Object.keys(sendToBackend));
@@ -78,7 +82,7 @@ const createMenu = () => {
           accelerator: 'CmdOrCtrl+S',
           click: async () => {
             try {
-              await UrlRandomizerHandler.invokeFromBackend.saveWebsites();
+              await WebsiteHandler.invokeFromBackend.saveWebsites();
               console.log('Websites saved');
             } catch (error) {
               console.error('Error saving websites:', error);
