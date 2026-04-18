@@ -1,17 +1,16 @@
-import {type UrlService, type GeneratedURL, type ClipBoardData, type ChatHistory} from "@linkrandomizer/common";
+import {type UrlService, type GeneratedURL, type Message, type ChatHistory} from "@linkrandomizer/common";
 import { shell } from "electron/common";
 import { explainURL } from "../ai/explain-url.js";
-import { ClipboardManager } from "../agent/clipboard-manager.js";
 import { sendToControlWindow } from "../mainBackend.js";
-const clipboardManager=new ClipboardManager();
+import { updateSystemWatchers } from "../agent/system-watcher.js";
 export const UrlHandler:UrlService={
     sendToBackend:{
         openUrlInBrowser:(data:{url:string}):void=>{
             shell.openExternal(data.url);
         
         },
-        updateClipBoard():void{
-            clipboardManager.updateClipboard();
+        updateSystemWatchers(type:"clipboard"|"file"):void{
+            updateSystemWatchers(type);
         }
     
     },
@@ -24,8 +23,8 @@ export const UrlHandler:UrlService={
     },
     eventFromBackend:{
 
-        onClipboardUpdate(data?:ClipBoardData,callback?:(data:ClipBoardData)=>void):void{
-            sendToControlWindow("onClipboardUpdate",data)
+        onSystemStateUpdate(data?:Message,callback?:(data:Message)=>void):void{
+            sendToControlWindow("onSystemStateUpdate",data)
         }
     }
     

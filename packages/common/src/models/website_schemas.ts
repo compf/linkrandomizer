@@ -43,8 +43,7 @@ export const WebsiteSchema=z.object({
         For all other languages, the prompt should be in English and instruct the AI to reply in English regardless of the language used.
         `
 ),
-openIn:z.enum(["defaultBrowser","playwrightBrowser"]).optional().describe("Whether the URL should be opened in the default browser or in a playwright controlled browser. The default browser is useful for websites that require login."),
-urlType:z.enum(["html","pdf","embedded"]).optional().describe("The type of the URL content. use embedded if an pdf is embedded in an html page without providing a direct link to the pdf. "),
+openIn:z.enum(["firefox","chromium","playwrightBrowser"]).optional().describe("Whether the URL should be opened in the default browser or in a playwright controlled browser. The default browser is useful for websites that require login."),
 
 },
 

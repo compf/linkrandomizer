@@ -8,10 +8,19 @@
             @if(message.content.type === 'image') {
                 <img [src]="getBase64(message.content.image)" alt="Image" style="max-width: 100%; height: auto;">
             }
+            @if(message.content.type === 'file') {
+                <p>File: {{message.content.file.name}}</p>
+            }
         </div>
     }
     <div style="display: flex; margin-top: 10px;">
-        <input (focus)="onInputFocus()" [(ngModel)]="userInput" placeholder="Type your message..." style="flex: 1; margin-right: 10px;" (keydown.enter)="sendMessage()">
+        <input [(ngModel)]="userInput" placeholder="Type your message..." style="flex: 1; margin-right: 10px;" (keydown.enter)="sendMessage()">
+        <button mat-icon-button color="primary" (click)="addClipboard()">
+            <mat-icon>content_paste</mat-icon>
+        </button>
+        <button mat-icon-button color="primary" (click)="addFile()">
+            <mat-icon>attach_file</mat-icon>
+        </button>
         <button mat-raised-button color="primary" (click)="sendMessage()">Send</button>
     </div>
 </mat-dialog-content>

@@ -4,7 +4,6 @@ import { fileURLToPath } from 'url';
 import { WebsiteHandler } from './handlers/website-handler.js';
 import { loadWebsites } from './data/websites-data.js';
 import { UrlHandler } from './handlers/url-handler.js';
-import { ClipboardManager } from './agent/clipboard-manager.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 let controlWindow: BrowserWindow|undefined=undefined
@@ -72,7 +71,6 @@ function createWindow() {
   // After renderer finishes loading, fetch some diagnostics and log them to the terminal
   
 }
-const manager=new ClipboardManager();
 
 
 const createMenu = () => {

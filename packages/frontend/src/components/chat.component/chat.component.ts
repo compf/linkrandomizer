@@ -1,6 +1,7 @@
 import { Component, inject, signal } from "@angular/core";
 import { FormControl, FormsModule } from "@angular/forms";
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from "@angular/material/dialog";
+import { MatIconModule } from "@angular/material/icon";
 import { GeneratedURL } from "@linkrandomizer/common";
 import { ChatHistory } from "@linkrandomizer/common"
 @Component({
@@ -9,7 +10,8 @@ import { ChatHistory } from "@linkrandomizer/common"
     styleUrls: ['./chat.component.css'],
     imports: [
         MatDialogModule,
-        FormsModule
+        FormsModule,
+        MatIconModule
     ]
 })
 export class ChatDialogComponent {
@@ -23,7 +25,7 @@ export class ChatDialogComponent {
     ])
     constructor(){
         console.log("ChatDialogComponent initialized with URL:", this.data);
-        window.api.eventFromBackend.onClipboardUpdate(undefined,(data)=>{
+        window.api.eventFromBackend.onSystemStateUpdate(undefined,(data)=>{
             console.log("Clipboard updated:", data);
             const newMessage={
                 content:data,
@@ -48,8 +50,8 @@ export class ChatDialogComponent {
         
         this.messages.update(msgs=>[...msgs,newMessage])
         const response = await window.api.invokeFromBackend.explainUrl({url:this.data, messages:this.messages()});
-        this.messages.update(msgs=>[...msgs,{content:{type:"text", text:response, image:undefined}, sender:"assistant"}])
         this.userInput.set("");
+        this.messages.update(msgs=>[...msgs,{content:{type:"text", text:response, image:undefined}, sender:"assistant"}])
     }
     private getBase64(arrayBuffer: ArrayBufferLike): string {
         let binary = '';
@@ -60,7 +62,11 @@ export class ChatDialogComponent {
         }
         return "data:image/png;base64,"+window.btoa(binary);
     }
-    async onInputFocus() {
-        window.api.sendToBackend.updateClipBoard();
+    
+    addClipboard(){
+        window.api.sendToBackend.updateSystemWatchers("clipboard");
+    }
+    addFile(){
+        window.api.sendToBackend.updateSystemWatchers("file");
     }
 }
