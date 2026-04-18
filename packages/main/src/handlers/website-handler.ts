@@ -6,7 +6,7 @@ import { exec } from 'child_process';
 import { executeBrowserAction, type GetLinksAction } from '../agent/actions.js';
 import { generateRandomURL, type GeneratedURL, type Website } from '@linkrandomizer/common';
 import { explainURL } from '../ai/explain-url.js';
-
+import { type ChatHistory } from '@linkrandomizer/common';
 export const WebsiteHandler = {
     sendToBackend: {
       
@@ -70,7 +70,7 @@ export const WebsiteHandler = {
             console.log("getAvailableWebsites called, returning:", sampleWebsites.length, "websites");
             return sampleWebsites;
         },
-        explainUrl(data: { url: GeneratedURL, messages: { text: string, sender: "user" | "assistant" }[] }) {
+        explainUrl(data: { url: GeneratedURL, messages: ChatHistory }): Promise<string> {
             return explainURL(data.url, data.messages);
         },
 

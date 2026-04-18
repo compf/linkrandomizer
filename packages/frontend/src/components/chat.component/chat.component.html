@@ -2,11 +2,16 @@
 <mat-dialog-content>
     @for( message of messages(); track message) {
         <div class="message" [class]="message.sender === 'user' ? 'user-message' : 'assistant-message'" style="margin-bottom: 10px;">
-            <b>{{message.sender}}:</b> {{message.text}}
+           @if(message.content.type === 'text') {
+                <p>{{message.content.text}}</p>
+            }
+            @if(message.content.type === 'image') {
+                <img [src]="getBase64(message.content.image)" alt="Image" style="max-width: 100%; height: auto;">
+            }
         </div>
     }
     <div style="display: flex; margin-top: 10px;">
-        <input [(ngModel)]="userInput" placeholder="Type your message..." style="flex: 1; margin-right: 10px;" (keydown.enter)="sendMessage()">
+        <input (focus)="onInputFocus()" [(ngModel)]="userInput" placeholder="Type your message..." style="flex: 1; margin-right: 10px;" (keydown.enter)="sendMessage()">
         <button mat-raised-button color="primary" (click)="sendMessage()">Send</button>
     </div>
 </mat-dialog-content>

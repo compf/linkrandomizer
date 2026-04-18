@@ -29,12 +29,30 @@ export const RandomFromSelectionSchema=z.object({
     variableName:z.string()
 })
 export const URLPartSchema=z.union([z.string(),z.object({variable:z.string(),padding:z.number().nullable()})])
+
+
 export const WebsiteSchema=z.object({
     name:z.string().describe("unique Name of the website schema"),
     schema:z.array(URLPartSchema).describe("Alternating between fixed string parts and variable parts. The first part must be fixed and start with http or https"),
     tags:z.array(z.string()).describe("Tags to categorize the website"),
-    variables:z.array(z.union([RandomFromRangeSchema,RandomDateSchema,RandomFromSelectionSchema,RandomDateRangeSchema]))
-})
+    variables:z.array(z.union([RandomFromRangeSchema,RandomDateSchema,RandomFromSelectionSchema,RandomDateRangeSchema])),
+    prompts:z.array(z.string()).optional().describe(`
+        Optional prompts to instruct the AI to explain the context, content and importance of an URL.
+        The prompt should  give an overview, outline anything that is interesting about the content of the URL.
+        For German text, the prompt should be in German and instruct the AI  to reply in German.
+        For all other languages, the prompt should be in English and instruct the AI to reply in English regardless of the language used.
+        `
+),
+openIn:z.enum(["defaultBrowser","playwrightBrowser"]).optional().describe("Whether the URL should be opened in the default browser or in a playwright controlled browser. The default browser is useful for websites that require login."),
+urlType:z.enum(["html","pdf","embedded"]).optional().describe("The type of the URL content. use embedded if an pdf is embedded in an html page without providing a direct link to the pdf. "),
+
+},
+
+
+)
+
+
+
 export const RandomURLPartSchema=z.union([RandomFromRangeSchema,RandomDateRangeSchema,RandomDateSchema,RandomFromSelectionSchema])
 export type RandomURLPart=z.infer<typeof RandomURLPartSchema>
 
