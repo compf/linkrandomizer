@@ -29,7 +29,6 @@ const initIPC=()=>{
             try{
                 const result = (method as any)(args, event);
                 if(result !== undefined){
-                    event.sender.send('loadProject', result);
                 }
             }catch(err){
                 console.error("error in handler for", key, err);

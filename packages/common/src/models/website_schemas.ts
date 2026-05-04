@@ -36,14 +36,12 @@ export const WebsiteSchema=z.object({
     schema:z.array(URLPartSchema).describe("Alternating between fixed string parts and variable parts. The first part must be fixed and start with http or https"),
     tags:z.array(z.string()).describe("Tags to categorize the website"),
     variables:z.array(z.union([RandomFromRangeSchema,RandomDateSchema,RandomFromSelectionSchema,RandomDateRangeSchema])),
-    prompts:z.array(z.string()).optional().describe(`
-        Optional prompts to instruct the AI to explain the context, content and importance of an URL.
-        The prompt should  give an overview, outline anything that is interesting about the content of the URL.
-        For German text, the prompt should be in German and instruct the AI  to reply in German.
-        For all other languages, the prompt should be in English and instruct the AI to reply in English regardless of the language used.
+    prompts:z.array(z.string()).optional().nullable().describe(`
+        Optional prompts to instruct another  AI to explain the context, content and importance of an URL. For instance, for a newspaper what happened on that day? For a scientific paper, what is the abstract and main findings? For a social media post, what is the content and who is the author? The prompt can include the following variables:
+       
         `
 ),
-openIn:z.enum(["firefox","chromium","playwrightBrowser"]).optional().describe("Whether the URL should be opened in the default browser or in a playwright controlled browser. The default browser is useful for websites that require login."),
+openIn:z.enum(["firefox","chromium","playwrightBrowser"]).optional().nullable().describe("Whether the URL should be opened in the default browser or in a playwright controlled browser. The default browser is useful for websites that require login."),
 
 },
 

@@ -22,10 +22,12 @@ let sampleWebsites: Website[] = [
     }
    
 ];
+//@ts-ignore
 import("./internal-websites.js").then((module)=>{
     sampleWebsites.push(...module.internalWebsites);
     console.log("Loaded internal websites, total count:", sampleWebsites.length);
 });
+import ts from 'typescript';
 
 const getWebsitesFilePath = (): string => {
     return path.join(app.getPath('userData'), 'websites.json');
