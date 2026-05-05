@@ -8,7 +8,20 @@
         <input type="checkbox" [(checked)]="selectedTags[tag]" (change)="toggleTagFilter(tag, $event.target.checked)" />
         <label>{{ tag }}</label>
       </div>
+        <div id="grouping">
+      <h4>Grouping</h4>
+      <mat-form-field appearance="fill">
+        <mat-label>Group URLs by</mat-label>
+        <mat-select  (selectionChange)="changeGrouper($event.value)">
+          <mat-option *ngFor="let grouperName of grouperNames" [value]="grouperName">
+            {{ grouperName }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
     </div>
+    </div>
+
+  
 
     <div id="websites">
     <mat-tree class="group-tree" [treeControl]="treeControl" [childrenAccessor]="childrenAccessor" [dataSource]="groupedUrls()">

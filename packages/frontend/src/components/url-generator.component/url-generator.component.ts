@@ -2,18 +2,19 @@ import { NestedTreeControl } from "@angular/cdk/tree";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { MatDialog } from "@angular/material/dialog";
+import { MatSelectModule } from "@angular/material/select";
 import { MatIconModule } from "@angular/material/icon";
 import { MatTreeModule } from "@angular/material/tree";
-import { Website, GroupedURl, GeneratedURL, generateRandomURL, GroupByVariables } from "@linkrandomizer/common";
+import { Website, GroupedURl, GeneratedURL, generateRandomURL, GroupByVariables, UrlGrouper, NoGrouping } from "@linkrandomizer/common";
 import { ChatDialogComponent } from "../chat.component/chat.component";
 import { Component, inject, OnInit, signal } from '@angular/core';
-
+import { availableGroupers } from "@linkrandomizer/common";
 @Component({
   selector: 'app-url-generator',
   templateUrl: './url-generator.component.html',
   styleUrls: ['./url-generator.component.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule, MatTreeModule,MatIconModule]
+  imports: [CommonModule, FormsModule, MatTreeModule,MatIconModule,MatSelectModule]
 })
 export class UrlGeneratorComponent implements OnInit {
   allWebsites=signal<Website[]>([])
@@ -130,7 +131,7 @@ export class UrlGeneratorComponent implements OnInit {
       const url=generateRandomURL(randomWebsite);
       generated.push(url);
     }
-    const grouper=new GroupByVariables(["year","month"]);
+    const grouper=this.grouper;
     const grouped=grouper.group(generated);
     console.log("Generated URLs grouped:", grouped);
     this.groupedUrls.set([grouped]);
@@ -140,6 +141,13 @@ export class UrlGeneratorComponent implements OnInit {
   }
 
   private dialog=inject(MatDialog)
+  protected grouperNames=Object.keys(availableGroupers)
+  private grouper:UrlGrouper=new NoGrouping()
+
+  protected changeGrouper(name:string){
+  this.grouper=availableGroupers[name as keyof typeof availableGroupers]
+  this.generateUrls()
+  }
   
 
   openUrl(url: string) {
