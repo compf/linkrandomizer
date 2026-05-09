@@ -1,6 +1,6 @@
 import { shell } from 'electron';
 import { chromium } from 'playwright';
-import { sampleWebsites, saveWebsites, loadWebsites, addWebsite } from '../data/websites-data.js';
+import { sampleWebsites, saveWebsites, loadWebsites, addWebsite, updateWebsites } from '../data/websites-data.js';
 import { performInteractiveAnalysis } from '../ai/ai-assisted-schema-finder.js';
 import { exec } from 'child_process';
 import { executeBrowserAction, type GetLinksAction } from '../agent/actions.js';
@@ -74,8 +74,12 @@ export const WebsiteHandler = {
             return explainURL(data.url, data.messages);
         },
 
-        saveWebsites: async (): Promise<void> => {
+        saveWebsites: async (websites?: Website[]): Promise<void> => {
+           if(websites){
+            updateWebsites(websites);
+           } else{
             saveWebsites();
+           }
         }
     }
 };

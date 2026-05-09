@@ -58,6 +58,7 @@ function createWindow() {
     },
     
   });
+  win.maximize();
   controlWindow=win;
 
   initIPC();

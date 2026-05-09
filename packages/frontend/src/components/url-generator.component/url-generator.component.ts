@@ -8,7 +8,8 @@ import { MatTreeModule } from "@angular/material/tree";
 import { Website, GroupedURl, GeneratedURL, generateRandomURL, GroupByVariables, UrlGrouper, NoGrouping } from "@linkrandomizer/common";
 import { ChatDialogComponent } from "../chat.component/chat.component";
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { availableGroupers } from "@linkrandomizer/common";
+import { availableGroupers,getTagsForWebsites } from "@linkrandomizer/common";
+import { WebsiteManager } from "../website-manager/website-manager";
 @Component({
   selector: 'app-url-generator',
   templateUrl: './url-generator.component.html',
@@ -86,9 +87,8 @@ export class UrlGeneratorComponent implements OnInit {
    const tags: Set<string> = new Set();
     try {
       const websites: Website[] = await (window as any).api.invokeFromBackend.getAvailableWebsites();
-      console.log("Websites for tag extraction:", websites);
-      websites.forEach(website => website.tags.forEach(tag => tags.add(tag)));
-      this.allTags.set(Array.from(tags));
+      getTagsForWebsites(websites)
+      this.allTags.set(getTagsForWebsites(websites));
     } catch (error) {
       console.error('Error loading tags:', error);
     }
@@ -158,5 +158,17 @@ export class UrlGeneratorComponent implements OnInit {
     this.dialog.open(ChatDialogComponent, {
       data: url
     });
+  }
+
+  manageWebsites() {
+    this.dialog.open(WebsiteManager,
+      {
+        panelClass:"fullscreen-overlay-panel",
+        width:"1920px",
+        height:"1080px",
+        maxWidth:"1920px",
+        maxHeight:"1080px"
+      }
+    );
   }
 }

@@ -32,6 +32,10 @@ import ts from 'typescript';
 const getWebsitesFilePath = (): string => {
     return path.join(app.getPath('userData'), 'websites.json');
 };
+export const updateWebsites = (websites: Website[]) => {
+    sampleWebsites = websites;
+    saveWebsites();
+}
 
 const saveWebsites = (): void => {
     try {

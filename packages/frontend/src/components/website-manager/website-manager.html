@@ -1,0 +1,166 @@
+<div class="website-manager-container">
+    <header class="manager-header">
+        <div>
+            <h1>Manage Websites</h1>
+            <p class="manager-subtitle">Select a website to update its name, tags, and dynamic variable settings.</p>
+        </div>
+    </header>
+
+    <mat-dialog-content class="website-manager-content">
+        <div class="website-manager-grid">
+            <section class="website-list-card">
+                <div class="list-header">
+                    <div>
+                        <h2>Available websites</h2>
+                        <p class="list-meta">Browse and choose a website to edit.</p>
+                    </div>
+                    <span class="badge">{{ websites().length }} items</span>
+                </div>
+
+                <div class="website-list">
+                    @for(website of websites(); track $index){
+                        <button type="button" class="website-item" [class.active]="currEditingWebsite()===website" (click)="currEditingWebsite.set(website)">
+                            <div>
+                                <p class="website-name">{{ website.name }}</p>
+                            </div>
+                            <span class="website-count">{{ website.tags.length }} tags</span>
+                        </button>
+                    }
+                    @if(websites().length===0){
+                        <div class="empty-state">
+                            <p>No websites available yet.</p>
+                        </div>
+                    }
+                </div>
+            </section>
+
+            @if(currEditingWebsite()){
+                <section class="edit-section">
+                    <div class="edit-header">
+                        <div>
+                            <h2>Edit {{ currEditingWebsite().name }}</h2>
+                            <p class="edit-meta">Make changes to a website configuration and tag it for later filtering.</p>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <mat-form-field appearance="fill" class="full-width">
+                            <p>Name</p>
+                            <input matInput [(ngModel)]="currEditingWebsite().name">
+                        </mat-form-field>
+                    </div>
+
+                    <div class="form-group">
+                        <mat-form-field appearance="fill" class="full-width">
+                            <p>Prompt</p>
+                            <textarea rows="10" matInput [(ngModel)]="currEditingWebsite().prompt"></textarea>
+                        </mat-form-field>
+                    </div>
+
+                    <div class="tags-section">
+                        <div class="section-title">
+                            <h3>Tags</h3>
+                            <span class="hint">Toggle tags to categorize this website.</span>
+                        </div>
+                        <div class="tags-list">
+                            @for(tag of allTags(); track $index){
+                                <label class="tag-chip">
+                                    <input type="checkbox" [checked]="currEditingWebsite().tags.includes(tag)" (change)="toggleWebsiteTag(currEditingWebsite(), tag, $event.target.checked)" />
+                                    <span>{{ tag }}</span>
+                                </label>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="variable-section">
+                        <div class="section-title">
+                            <h3>Variables</h3>
+                            <span class="hint">Adjust parameters for dynamic URL generation.</span>
+                        </div>
+
+                        @for(variable of currEditingWebsite().variables; track $index){
+                            <div class="variable-item">
+                                <div class="variable-title">
+                                    <span>{{ variable.name }}</span>
+                                    <small>{{ variable.variableName || variable.name }}</small>
+                                </div>
+
+                                @if(variable.name=="randomFromRange"){
+                                    <div class="variable-fields">
+                                        <mat-form-field appearance="fill" class="field-full">
+                                            <p>Name</p>
+                                            <input matInput [(ngModel)]="variable.variableName">
+                                        </mat-form-field>
+                                        <mat-form-field appearance="fill" class="field-half">
+                                            <p>Min</p>
+                                            <input matInput type="number" [(ngModel)]="variable.min">
+                                        </mat-form-field>
+                                        <mat-form-field appearance="fill" class="field-half">
+                                            <p>Max</p>
+                                            <input matInput type="number" [(ngModel)]="variable.maxExclusive">
+                                        </mat-form-field>
+                                    </div>
+                                }
+
+                                @if(variable.name=="randomDate"){
+                                    <div class="variable-fields">
+                                        <mat-form-field appearance="fill" class="field-half">
+                                            <p>Min Year</p>
+                                            <input matInput type="number" [(ngModel)]="variable.minYear">
+                                        </mat-form-field>
+                                        <mat-form-field appearance="fill" class="field-half">
+                                            <p>Max Year</p>
+                                            <input matInput type="number" [(ngModel)]="variable.maxYearExclusive">
+                                        </mat-form-field>
+                                    </div>
+                                }
+
+                                @if(variable.name=="randomDateRange"){
+                                    <div class="variable-fields">
+                                        <mat-form-field appearance="fill" class="field-half">
+                                            <p>Min Year</p>
+                                            <input matInput type="number" [(ngModel)]="variable.minYear">
+                                        </mat-form-field>
+                                        <mat-form-field appearance="fill" class="field-half">
+                                            <p>Max Year</p>
+                                            <input matInput type="number" [(ngModel)]="variable.maxYearExclusive">
+                                        </mat-form-field>
+                                        <mat-form-field appearance="fill" class="field-full">
+                                            <p>Max days to second date</p>
+                                            <input matInput type="number" [(ngModel)]="variable.maxNumberOfDaysToSecondDate">
+                                        </mat-form-field>
+                                    </div>
+                                }
+
+                                @if(variable.name=="randomFromSelection"){
+                                    <div class="variable-fields">
+                                        <mat-form-field appearance="fill" class="field-full">
+                                            <p>Name</p>
+                                            <input matInput [(ngModel)]="variable.variableName">
+                                        </mat-form-field>
+                                    </div>
+                                    <div class="selection-values">
+                                        <h4>Values</h4>
+                                        @for(value of variable.values; track $index){
+                                            <div class="selection-value-item">
+                                                <input matInput [(ngModel)]="variable.values[$index]">
+                                                <button mat-icon-button color="warn" type="button" (click)="removeSelectionValue(variable, $index)">
+                                                    <mat-icon>delete</mat-icon>
+                                                </button>
+                                            </div>
+                                        }
+                                        <button mat-raised-button color="primary" type="button" (click)="addSelectionValue(variable)">Add Value</button>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </section>
+            }
+        </div>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+        <button mat-stroked-button color="primary" (click)="saveChanges()">Save Changes</button>
+        <button mat-stroked-button color="warn" (click)="reference.close()">Discard Changes</button>
+    </mat-dialog-actions>
+</div>

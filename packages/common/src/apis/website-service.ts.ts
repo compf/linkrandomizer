@@ -11,7 +11,7 @@ export const WebsiteServiceSchema = {
 
     invokeFromBackend: {
         getAvailableWebsites: (): Promise<Website[]> => unsupported(),
-        saveWebsites: (): Promise<void> => unsupported()
+        saveWebsites: (websites?: Website[]): Promise<void> => unsupported()
     },
 
     eventFromBackend: {

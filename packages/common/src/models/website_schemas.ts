@@ -36,8 +36,8 @@ export const WebsiteSchema=z.object({
     schema:z.array(URLPartSchema).describe("Alternating between fixed string parts and variable parts. The first part must be fixed and start with http or https"),
     tags:z.array(z.string()).describe("Tags to categorize the website"),
     variables:z.array(z.union([RandomFromRangeSchema,RandomDateSchema,RandomFromSelectionSchema,RandomDateRangeSchema])),
-    prompts:z.array(z.string()).optional().nullable().describe(`
-        Optional prompts to instruct another  AI to explain the context, content and importance of an URL. For instance, for a newspaper what happened on that day? For a scientific paper, what is the abstract and main findings? For a social media post, what is the content and who is the author? The prompt can include the following variables:
+    prompt:(z.string()).optional().nullable().describe(`
+        Optional prompt to instruct another  AI to explain the context, content and importance of an URL. For instance, for a newspaper what happened on that day? For a scientific paper, what is the abstract and main findings? For a social media post, what is the content and who is the author? The prompt can include the following variables:
        
         `
 ),
@@ -157,4 +157,14 @@ export const generateRandomURL=(website:Website):GeneratedURL=>{
         variables,
         website
     }
+}
+
+export const getTagsForWebsites=(websites:Website[]):string[]=>{
+    const tagSet=new Set<string>()
+    for(const website of websites){
+        for(const tag of website.tags){
+            tagSet.add(tag)
+        }
+    }
+    return Array.from(tagSet)
 }
