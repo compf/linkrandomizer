@@ -2,8 +2,8 @@ import { app, BrowserWindow, ipcMain, Menu } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { WebsiteHandler } from './handlers/website-handler.js';
-import { loadWebsites } from './data/websites-data.js';
 import { UrlHandler } from './handlers/url-handler.js';
+import { loadWebsites } from './data/websites-data.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 let controlWindow: BrowserWindow|undefined=undefined
@@ -131,8 +131,8 @@ export const sendToControlWindow=(channel:keyof EventFromBackendType, data:any)=
   };
 
 
-app.whenReady().then(()=>{
-    loadWebsites();
+app.whenReady().then(async ()=>{
+    await loadWebsites();
     createWindow();
     createMenu();
  

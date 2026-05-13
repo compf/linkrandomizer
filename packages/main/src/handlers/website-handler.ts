@@ -1,12 +1,12 @@
 import { shell } from 'electron';
 import { chromium } from 'playwright';
-import { sampleWebsites, saveWebsites, loadWebsites, addWebsite, updateWebsites } from '../data/websites-data.js';
 import { performInteractiveAnalysis } from '../ai/ai-assisted-schema-finder.js';
 import { exec } from 'child_process';
 import { executeBrowserAction, type GetLinksAction } from '../agent/actions.js';
 import { generateRandomURL, type GeneratedURL, type Website } from '@linkrandomizer/common';
 import { explainURL } from '../ai/explain-url.js';
 import { type ChatHistory } from '@linkrandomizer/common';
+import { addWebsite, allWebsites, saveWebsites, updateWebsites } from '../data/websites-data.js';
 export const WebsiteHandler = {
     sendToBackend: {
       
@@ -67,8 +67,8 @@ export const WebsiteHandler = {
 
     invokeFromBackend: {
         getAvailableWebsites: async (): Promise<Website[]> => {
-            console.log("getAvailableWebsites called, returning:", sampleWebsites.length, "websites");
-            return sampleWebsites;
+            console.log("getAvailableWebsites called, returning:", allWebsites.length, "websites");
+            return allWebsites;
         },
         explainUrl(data: { url: GeneratedURL, messages: ChatHistory }): Promise<string> {
             return explainURL(data.url, data.messages);

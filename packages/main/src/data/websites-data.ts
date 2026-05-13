@@ -5,7 +5,7 @@ import type { Website } from '@linkrandomizer/common';
 
 
 // Sample websites for demonstration
-let sampleWebsites: Website[] = [
+let publicWebsites: Website[] = [
     {
         name:"nytimes time machine",
         tags:["news","articles"],
@@ -22,56 +22,79 @@ let sampleWebsites: Website[] = [
     }
    
 ];
-//@ts-ignore
-import("./internal-websites.js").then((module)=>{
-    sampleWebsites.push(...module.internalWebsites);
-    console.log("Loaded internal websites, total count:", sampleWebsites.length);
-});
-import ts from 'typescript';
+const otherWebssites: Website[] = []
+
 
 const getWebsitesFilePath = (): string => {
     return path.join(app.getPath('userData'), 'websites.json');
 };
 export const updateWebsites = (websites: Website[]) => {
-    sampleWebsites = websites;
+    allWebsites.length=0;
+    allWebsites.push(...websites)
     saveWebsites();
 }
 
-const saveWebsites = (): void => {
+export const saveWebsites = (): void => {
     try {
         const filePath = getWebsitesFilePath();
-        fs.writeFileSync(filePath, JSON.stringify(sampleWebsites, null, 2));
+        fs.writeFileSync(filePath, JSON.stringify(allWebsites, null, 2));
         console.log('Websites saved to:', filePath);
     } catch (error) {
         console.error('Error saving websites:', error);
     }
 };
+export const allWebsites:Website[]=[]
 
-const loadWebsites = (): void => {
-    try {
-        const filePath = getWebsitesFilePath();
-        if (fs.existsSync(filePath)) {
-            const data = fs.readFileSync(filePath, 'utf-8');
-            const loadedWebsites: Website[] = JSON.parse(data);
-            // Merge loaded websites with sample websites, avoiding duplicates by name
-            const existingNames = new Set(sampleWebsites.map(w => w.name));
-            const newWebsites = loadedWebsites.filter(w => !existingNames.has(w.name));
-            sampleWebsites = [...sampleWebsites, ...newWebsites];
-            console.log('Websites loaded from:', filePath, 'added', newWebsites.length, 'new websites');
-        } else {
-            console.log('No saved websites file found, using defaults');
+export const loadWebsites = async (): Promise<void> => {
+    const sources:Website[][] = [];
+    sources.push(publicWebsites);
+    try{
+        //ts-ignore
+        const otherWebsites=await import("./internal-websites.js")
+        console.log("Loaded internal websites:", otherWebsites.internalWebsites);
+        sources.push(otherWebsites.internalWebsites)
+    }
+    catch{
+
+    }
+    const filePath = getWebsitesFilePath();
+    if(fs.existsSync(filePath)){
+        const data = fs.readFileSync(filePath, 'utf-8');
+        const loadedWebsites: Website[] = JSON.parse(data);
+        sources.push(loadedWebsites);
+    }
+    const target:Record<string,Website>={}
+
+    for(const source of sources){
+        for(const website of source){
+            if(!target[website.name]){
+                target[website.name] = website;
+            }
+            else{
+               const compareWebsite=target[website.name]!
+               console.log(compareWebsite,website)
+               if(compareWebsite.version && website.version){
+                if(website.version>compareWebsite.version){
+                    target[website.name]=website
+                }
+               }
+               
+            }
         }
-    } catch (error) {
-        console.error('Error loading websites:', error);
+
     }
+    allWebsites.push(...Object.values(target))
+    console.log('Websites loaded. Total unique websites count:', allWebsites.length);
+     
+    
 };
 
-const addWebsite = (website: Website): void => {
-    const existingNames = new Set(sampleWebsites.map(w => w.name));
-    if (!existingNames.has(website.name)) {
-        sampleWebsites = [...sampleWebsites, website];
-        console.log('Added new website to collection:', website.name);
-    }
+export const addWebsite = (website: Website): void => {
+   if(allWebsites.find(w=>w.name===website.name)){
+    console.warn(`Website with name ${website.name} already exists. Skipping add.`);
+    return;
+   }
+   allWebsites.push(website);
+   saveWebsites();
 };
 
-export { sampleWebsites, saveWebsites, loadWebsites, addWebsite };

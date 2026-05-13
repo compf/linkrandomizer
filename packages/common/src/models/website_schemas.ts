@@ -32,6 +32,7 @@ export const URLPartSchema=z.union([z.string(),z.object({variable:z.string(),pad
 
 
 export const WebsiteSchema=z.object({
+    version:z.number().optional(),
     name:z.string().describe("unique Name of the website schema"),
     schema:z.array(URLPartSchema).describe("Alternating between fixed string parts and variable parts. The first part must be fixed and start with http or https"),
     tags:z.array(z.string()).describe("Tags to categorize the website"),
@@ -39,7 +40,8 @@ export const WebsiteSchema=z.object({
     prompt:(z.string()).optional().nullable().describe(`
         Optional prompt to instruct another  AI to explain the context, content and importance of an URL. For instance, for a newspaper what happened on that day? For a scientific paper, what is the abstract and main findings? For a social media post, what is the content and who is the author? The prompt can include the following variables:
        
-        `
+        `,
+ 
 ),
 openIn:z.enum(["firefox","chromium","playwrightBrowser"]).optional().nullable().describe("Whether the URL should be opened in the default browser or in a playwright controlled browser. The default browser is useful for websites that require login."),
 

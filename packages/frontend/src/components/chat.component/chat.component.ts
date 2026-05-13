@@ -24,7 +24,10 @@ export class ChatDialogComponent {
 
     ])
     constructor(){
-        console.log("ChatDialogComponent initialized with URL:", this.data);
+        console.log("ChatDialogComponent initialized with data:", this.data);
+        if(this.data.website.prompt){
+            this.messages.update(msgs=>[...msgs,{content:{type:"text", text:this.data.website.prompt!!, image:undefined}, sender:"assistant"}])
+        }
         window.api.eventFromBackend.onSystemStateUpdate(undefined,(data)=>{
             console.log("Clipboard updated:", data);
             const newMessage={
@@ -47,8 +50,10 @@ export class ChatDialogComponent {
             sender:"user" as "user"
         }
         const msgs=this.messages();
+        if(newMessage.content.text.trim()!==""){
+            this.messages.update(msgs=>[...msgs,newMessage])
+        }
         
-        this.messages.update(msgs=>[...msgs,newMessage])
         const response = await window.api.invokeFromBackend.explainUrl({url:this.data, messages:this.messages()});
         this.userInput.set("");
         this.messages.update(msgs=>[...msgs,{content:{type:"text", text:response, image:undefined}, sender:"assistant"}])
