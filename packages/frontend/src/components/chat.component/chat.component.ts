@@ -67,6 +67,10 @@ export class ChatDialogComponent {
         }
         return "data:image/png;base64,"+window.btoa(binary);
     }
+
+    openUrl(){
+        window.api.sendToBackend.openUrlInBrowser({url:this.data.url})
+    }
     
     addgeneratedUrl(){
       window.api.sendToBackend.obtainUrlContent({
