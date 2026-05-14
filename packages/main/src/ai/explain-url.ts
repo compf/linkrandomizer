@@ -7,7 +7,7 @@ import { url } from 'inspector';
 import { z } from 'zod';
 import { BrowserActionSchema, executeBrowserAction } from '../agent/actions.js';
 import { exec } from 'child_process';
-import { type ChatHistory, type GeneratedURL, type Message, type Website, WebsiteSchema } from '@linkrandomizer/common';
+import { type ChatHistory, type GeneratedURL, type ChatMessage, type Website, WebsiteSchema } from '@linkrandomizer/common';
 import type { EasyInputMessage, ResponseCreateParams } from 'openai/resources/responses/responses.mjs';
 
 // Initialize OpenAI
@@ -25,7 +25,7 @@ export const explainURL = async (
     messages: ChatHistory
 ): Promise<string> => {
    console.log("Explaining URL with OpenAI. URL:", url, "Messages:", messages);
-   const transformMessage=(message:Message):string|ChatCompletionContentPart[]=>{
+   const transformMessage=(message:ChatMessage):string|ChatCompletionContentPart[]=>{
     if(message.type==="text"){
        return message.text ??""
     }

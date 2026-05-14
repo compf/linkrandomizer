@@ -2,27 +2,10 @@ import fs from 'fs';
 import path from 'path';
 import { app } from 'electron';
 import type { Website } from '@linkrandomizer/common';
-
+import {publicWebsites} from "./public-websites.js"
 
 // Sample websites for demonstration
-let publicWebsites: Website[] = [
-    {
-        name:"nytimes time machine",
-        tags:["news","articles"],
-        //https://timesmachine.nytimes.com/timesmachine/1992/11/05/issue.html
-        schema:["https://timesmachine.nytimes.com/timesmachine/",{variable:"year",padding:null},"/",{variable:"month",padding:2},"/",{variable:"day",padding:2},"/issue.html"],
-        variables:[
-            {
-                name:"randomDate",
-                minYear:1860,
-                maxYearExclusive:2003,
-            }
 
-        ]
-    }
-   
-];
-const otherWebssites: Website[] = []
 
 
 const getWebsitesFilePath = (): string => {
@@ -57,12 +40,7 @@ export const loadWebsites = async (): Promise<void> => {
     catch{
 
     }
-    const filePath = getWebsitesFilePath();
-    if(fs.existsSync(filePath)){
-        const data = fs.readFileSync(filePath, 'utf-8');
-        const loadedWebsites: Website[] = JSON.parse(data);
-        sources.push(loadedWebsites);
-    }
+
     const target:Record<string,Website>={}
 
     for(const source of sources){

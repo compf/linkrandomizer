@@ -1,6 +1,6 @@
 import { GeneratedURL } from "../models/generated_url.js";
 import { unsupported } from "./abstract-service.js";
-export type Message={
+export type ChatMessage={
     type:"text"|"image"|"file",
     text?:string|undefined;
     image?:ArrayBufferLike|undefined,
@@ -10,20 +10,20 @@ export type Message={
     } | undefined
 }
 export type ChatHistory={
-    content:Message,
+    content:ChatMessage,
     sender:"user" | "assistant"
 }[]
 export const UrlServiceSchema={
     sendToBackend:{
         openUrlInBrowser:(data:{url:string}):void=>unsupported(),
-        updateSystemWatchers:(  type:"clipboard"|"file"):void=>unsupported()
+        obtainUrlContent:(data:{generatedURL: GeneratedURL, type: "downloadFromGeneratedURL" | "downloadFromURLInClipboard" | "screenshotInClipboard"}):void=>unsupported()
     },
     invokeFromBackend:{
         explainUrl:(data:{url:GeneratedURL,messages:ChatHistory}):Promise<string>=>unsupported()
     },
     eventFromBackend:{
 
-        onSystemStateUpdate:(data?:Message,callback?:(data:Message)=>void):void => unsupported()
+        onContentLoaded:(data?:ChatMessage,callback?:(data:ChatMessage)=>void):void => unsupported()
 
 
     }

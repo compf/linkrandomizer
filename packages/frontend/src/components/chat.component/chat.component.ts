@@ -28,7 +28,7 @@ export class ChatDialogComponent {
         if(this.data.website.prompt){
             this.messages.update(msgs=>[...msgs,{content:{type:"text", text:this.data.website.prompt!!, image:undefined}, sender:"assistant"}])
         }
-        window.api.eventFromBackend.onSystemStateUpdate(undefined,(data)=>{
+        window.api.eventFromBackend.onContentLoaded(undefined,(data)=>{
             console.log("Clipboard updated:", data);
             const newMessage={
                 content:data,
@@ -68,10 +68,22 @@ export class ChatDialogComponent {
         return "data:image/png;base64,"+window.btoa(binary);
     }
     
-    addClipboard(){
-        window.api.sendToBackend.updateSystemWatchers("clipboard");
+    addgeneratedUrl(){
+      window.api.sendToBackend.obtainUrlContent({
+          generatedURL:this.data,
+          type:"downloadFromGeneratedURL"
+      })
     }
-    addFile(){
-        window.api.sendToBackend.updateSystemWatchers("file");
+    addClipboard(){
+        window.api.sendToBackend.obtainUrlContent({
+            generatedURL:this.data,
+            type:"downloadFromURLInClipboard"
+        })
+    }
+    addClipboardImage(){
+        window.api.sendToBackend.obtainUrlContent({
+            generatedURL:this.data,
+            type:"screenshotInClipboard"
+        })    
     }
 }

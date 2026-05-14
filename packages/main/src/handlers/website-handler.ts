@@ -50,14 +50,7 @@ export const WebsiteHandler = {
 
             } catch (error) {
                 console.error('Error analyzing website:', error);
-                // Return basic schema on error
-                const schemas: Website[] = [{
-                    name: "error-fallback",
-                    tags: ["error"],
-                    variables: [],
-                    schema: [data.url]
-                }];
-                event.sender.send('websiteAnalysisComplete', schemas);
+              
             }
         },
  

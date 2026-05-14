@@ -15,11 +15,14 @@
     }
     <div style="display: flex; margin-top: 10px;">
         <input [(ngModel)]="userInput" placeholder="Type your message..." style="flex: 1; margin-right: 10px;" (keydown.enter)="sendMessage()">
-        <button mat-icon-button color="primary" (click)="addClipboard()">
-            <mat-icon>content_paste</mat-icon>
+        <button [class.isHighlighted]="data.website.downloadType==='downloadFromGeneratedURL'" mat-icon-button color="primary" (click)="addgeneratedUrl()">
+                <mat-icon>link</mat-icon>
         </button>
-        <button mat-icon-button color="primary" (click)="addFile()">
-            <mat-icon>attach_file</mat-icon>
+        <button [class.isHighlighted]="data.website.downloadType==='downloadFromURLInClipboard'" mat-icon-button color="primary" (click)="addClipboard()">
+              <mat-icon>content_paste</mat-icon>
+        </button>
+        <button [class.isHighlighted]="data.website.downloadType==='screenshotInClipboard'" mat-icon-button color="primary" (click)="addClipboardImage()">
+              <mat-icon>image</mat-icon>
         </button>
         <button mat-raised-button color="primary" (click)="sendMessage()">Send</button>
     </div>

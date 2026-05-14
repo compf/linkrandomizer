@@ -38,12 +38,14 @@ export const WebsiteSchema=z.object({
     tags:z.array(z.string()).describe("Tags to categorize the website"),
     variables:z.array(z.union([RandomFromRangeSchema,RandomDateSchema,RandomFromSelectionSchema,RandomDateRangeSchema])),
     prompt:(z.string()).optional().nullable().describe(`
-        Optional prompt to instruct another  AI to explain the context, content and importance of an URL. For instance, for a newspaper what happened on that day? For a scientific paper, what is the abstract and main findings? For a social media post, what is the content and who is the author? The prompt can include the following variables:
+        Optional prompt to instruct another  AI to explain the context, content and importance of an URL. For instance, for a newspaper what happened on that day? For a scientific paper, what is the abstract and main findings? For a social media post, what is the content and who is the author?
        
-        `,
+        `,),
  
-),
+
+
 openIn:z.enum(["firefox","chromium","playwrightBrowser"]).optional().nullable().describe("Whether the URL should be opened in the default browser or in a playwright controlled browser. The default browser is useful for websites that require login."),
+downloadType:z.enum(["downloadFromGeneratedURL","downloadFromURLInClipboard","screenshotInClipboard",])
 
 },
 

@@ -30,3 +30,7 @@
   background-color: lightgray;
 }
 
+.isHighlighted{
+    background-color: lightgreen !important;
+}
+

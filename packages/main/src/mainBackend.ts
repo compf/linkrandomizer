@@ -24,7 +24,6 @@ const initIPC=()=>{
     for(const key in sendToBackend){
         const method=sendToBackend[key as keyof typeof sendToBackend];
         ipcMain.on(key, async (event, args) => {
-            console.log("ipcMain on",key,args)
             // call the handler and, if it returns a value, send it back to the same renderer
             try{
                 const result = (method as any)(args, event);
