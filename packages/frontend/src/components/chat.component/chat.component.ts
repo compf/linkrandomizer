@@ -4,6 +4,8 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from "@angular/materia
 import { MatIconModule } from "@angular/material/icon";
 import { GeneratedURL } from "@linkrandomizer/common";
 import { ChatHistory } from "@linkrandomizer/common"
+import showdown from "showdown";
+const converter = new showdown.Converter();
 @Component({
     selector: 'app-chat',
     templateUrl: './chat.component.html',
@@ -55,8 +57,16 @@ export class ChatDialogComponent {
         }
         
         const response = await window.api.invokeFromBackend.explainUrl({url:this.data, messages:this.messages()});
+        const chatResponse={
+            content:{
+                type:"text" as "text",
+                text:converter.makeHtml(response),
+                image:undefined
+            },
+            sender:"assistant" as "assistant"
+        }
         this.userInput.set("");
-        this.messages.update(msgs=>[...msgs,{content:{type:"text", text:response, image:undefined}, sender:"assistant"}])
+        this.messages.update(msgs=>[...msgs,chatResponse])
     }
     private getBase64(arrayBuffer: ArrayBufferLike): string {
         let binary = '';
