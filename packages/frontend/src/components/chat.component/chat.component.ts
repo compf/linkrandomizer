@@ -4,6 +4,7 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from "@angular/materia
 import { MatIconModule } from "@angular/material/icon";
 import { GeneratedURL } from "@linkrandomizer/common";
 import { ChatHistory } from "@linkrandomizer/common"
+import {MatProgressSpinnerModule} from '@angular/material/progress-spinner'; 
 import showdown from "showdown";
 const converter = new showdown.Converter();
 @Component({
@@ -13,11 +14,14 @@ const converter = new showdown.Converter();
     imports: [
         MatDialogModule,
         FormsModule,
-        MatIconModule
+        MatIconModule,
+        MatProgressSpinnerModule
     ]
 })
 export class ChatDialogComponent {
     public data=inject(MAT_DIALOG_DATA) as  GeneratedURL;
+
+    public loading=signal(false);
     
 
     protected messages=signal<ChatHistory>([
@@ -37,6 +41,7 @@ export class ChatDialogComponent {
                 sender:"user" as "user"
             }
             this.messages.update(msgs=>[...msgs,newMessage])
+            this.loading.set(false);
         })
     }
 
@@ -55,8 +60,10 @@ export class ChatDialogComponent {
         if(newMessage.content.text.trim()!==""){
             this.messages.update(msgs=>[...msgs,newMessage])
         }
-        
+        this.loading.set(true);
+          this.userInput.set("");
         const response = await window.api.invokeFromBackend.explainUrl({url:this.data, messages:this.messages()});
+        this.loading.set(false);
         const chatResponse={
             content:{
                 type:"text" as "text",
@@ -65,7 +72,7 @@ export class ChatDialogComponent {
             },
             sender:"assistant" as "assistant"
         }
-        this.userInput.set("");
+      
         this.messages.update(msgs=>[...msgs,chatResponse])
     }
     private getBase64(arrayBuffer: ArrayBufferLike): string {
@@ -83,18 +90,23 @@ export class ChatDialogComponent {
     }
     
     addgeneratedUrl(){
+        this.loading.set(true);
       window.api.sendToBackend.obtainUrlContent({
           generatedURL:this.data,
           type:"downloadFromGeneratedURL"
       })
     }
     addClipboard(){
+        this.loading.set(true);
+
         window.api.sendToBackend.obtainUrlContent({
             generatedURL:this.data,
             type:"downloadFromURLInClipboard"
         })
     }
     addClipboardImage(){
+        this.loading.set(true);
+
         window.api.sendToBackend.obtainUrlContent({
             generatedURL:this.data,
             type:"screenshotInClipboard"

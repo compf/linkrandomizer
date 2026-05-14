@@ -14,6 +14,9 @@
             }
         </div>
     }
+    @if(loading()) {
+        <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+    }
     <div style="display: flex; margin-top: 10px;">
         <input [(ngModel)]="userInput" placeholder="Type your message..." style="flex: 1; margin-right: 10px;" (keydown.enter)="sendMessage()">
         <button [class.isHighlighted]="data.website.downloadType==='downloadFromGeneratedURL'" mat-icon-button color="primary" (click)="addgeneratedUrl()">

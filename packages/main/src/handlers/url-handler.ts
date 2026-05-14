@@ -29,8 +29,13 @@ export const UrlHandler: UrlService = {
     },
     invokeFromBackend: {
         explainUrl(data: { url: GeneratedURL, messages: ChatHistory }): Promise<string> {
+            try{
+                return explainURL(data.url, data.messages);
+            }
 
-            return explainURL(data.url, data.messages);
+            catch(error){
+                return Promise.resolve("Error explaining URL:"+(error instanceof Error ? error.message : String(error)));
+            }
         }
 
     },
