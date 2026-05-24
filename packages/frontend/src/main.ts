@@ -6,7 +6,30 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UrlGeneratorComponent } from './components/url-generator.component/url-generator.component';
 import { WebsiteAnalyzerComponent } from './components/website-analyzer.component/website-analyzer.component';
+import { ElectronService } from '@linkrandomizer/common';
+import { FrontendUrlHandler } from './frontend-handler/frontend-url-handler';
+import { FrontendWebsiteHandler } from './frontend-handler/frontend-website-handler';
 
+if(window.isElectron){
+  console.log("Running in electron");
+} else {
+  const service:ElectronService={
+    invokeFromBackend:{
+      ...FrontendUrlHandler.invokeFromBackend,
+      ...FrontendWebsiteHandler.invokeFromBackend
+    },
+    eventFromBackend:{
+      ...FrontendUrlHandler.eventFromBackend,
+      ...FrontendWebsiteHandler.eventFromBackend
+    },
+    sendToBackend:{
+      ...FrontendUrlHandler.sendToBackend,
+      ...FrontendWebsiteHandler.sendToBackend
+    }
+  }
+  window.api=service;
+  console.log("Running in browser");
+}
 
 
 
@@ -28,3 +51,4 @@ class App implements OnInit {
 }
 
 bootstrapApplication(App).catch(err => console.error(err));
+

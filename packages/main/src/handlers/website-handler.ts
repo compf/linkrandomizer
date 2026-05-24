@@ -3,17 +3,16 @@ import { chromium } from 'playwright';
 import { performInteractiveAnalysis } from '../ai/ai-assisted-schema-finder.js';
 import { exec } from 'child_process';
 import { executeBrowserAction, type GetLinksAction } from '../agent/actions.js';
-import { generateRandomURL, type GeneratedURL, type Website } from '@linkrandomizer/common';
+import { generateRandomURL, type GeneratedURL, type Website, type WebsiteService } from '@linkrandomizer/common';
 import { explainURL } from '../ai/explain-url.js';
 import { type ChatHistory } from '@linkrandomizer/common';
-import { addWebsite, allWebsites, saveWebsites, updateWebsites } from '../data/websites-data.js';
-export const WebsiteHandler = {
+import { publicWebsites } from '@linkrandomizer/common';
+import { sendToControlWindow } from '../mainBackend.js';
+export const WebsiteHandler: WebsiteService = {
     sendToBackend: {
-      
+        
 
-        analyzeWebsite: async (data: { url: string; existingLinks: string[] }, event: any) => {
-            const status = (text: string) => event.sender.send('websiteAnalysisStatus', text);
-            status('analysis_started');
+        analyzeWebsite: async (data: { url: string; existingLinks: string[] }): Promise<void> => {
 
             try {
                 // Launch browser for interactive analysis
@@ -28,23 +27,18 @@ export const WebsiteHandler = {
                 await executeBrowserAction({ actionType: 'goto', url: data.url }, page, output);
                 visitedPages.add(data.url);
                 //await page.waitForTimeout(20_000);
-                status('page_loaded');
 
                 // Get initial links
                 const getLinksAction = { actionType: 'getLinks' } as GetLinksAction
                const links= await executeBrowserAction(getLinksAction , page, output    );
                 const schemas=await performInteractiveAnalysis(output,page);
-                for(const s of schemas){
-                    addWebsite(s);
-                }
-                saveWebsites();
+              
+                console.log("schemas:", schemas);
                 
-                status('initial_links_extracted');
 
 
         
                 await browser.close();
-                event.sender.send('websiteAnalysisComplete', schemas);
 
                
 
@@ -59,20 +53,20 @@ export const WebsiteHandler = {
     },
 
     invokeFromBackend: {
-        getAvailableWebsites: async (): Promise<Website[]> => {
-            console.log("getAvailableWebsites called, returning:", allWebsites.length, "websites");
-            return allWebsites;
-        },
-        explainUrl(data: { url: GeneratedURL, messages: ChatHistory }): Promise<string> {
-            return explainURL(data.url, data.messages);
-        },
+       
+       
 
-        saveWebsites: async (websites?: Website[]): Promise<void> => {
-           if(websites){
-            updateWebsites(websites);
-           } else{
-            saveWebsites();
-           }
+        
+    },
+    eventFromBackend: {
+        randomUrlsGenerated: (urls: string[], callback?: (urls: string[]) => void): void => {
+                sendToControlWindow('randomUrlsGenerated', urls);
+            },
+        websiteAnalysisComplete: (schemas: Website[], callback?: (schemas: Website[]) => void): void => {
+            sendToControlWindow('websiteAnalysisComplete', schemas);
+        },
+        websiteAnalysisStatus: (status: string, callback?: (status: string) => void): void => {
+            sendToControlWindow('websiteAnalysisStatus', status);
         }
     }
 };

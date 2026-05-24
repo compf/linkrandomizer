@@ -26,10 +26,8 @@ const EventFromBackendServices:Record<keyof EventFromBackendType,null>={
 }
 
 const InvokeFromBackendServices:Record<keyof InvokeFromBackendType,null>={
-	getAvailableWebsites:null,
 	explainUrl:null,
 	
-	saveWebsites:null
 }
 const  sendToBackend=Object.keys(sendToBackendServices).map((it)=>{
 	return [it,(data:any)=>{
@@ -68,5 +66,6 @@ contextBridge.exposeInMainWorld('api', {
 	
 	
 });
+contextBridge.exposeInMainWorld('isElectron',true);
 
 console.log('The preload script has been injected successfully.');
