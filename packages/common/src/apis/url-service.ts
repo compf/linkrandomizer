@@ -19,7 +19,8 @@ export const UrlServiceSchema={
         obtainUrlContent:(data:{generatedURL: GeneratedURL, type: "downloadFromGeneratedURL" | "downloadFromURLInClipboard" | "screenshotInClipboard"}):void=>unsupported()
     },
     invokeFromBackend:{
-        explainUrl:(data:{url:GeneratedURL,messages:ChatHistory}):Promise<string>=>unsupported()
+        explainUrl:(data:{url:GeneratedURL,messages:ChatHistory}):Promise<string>=>unsupported(),
+        getKey:():Promise<string>=>unsupported()
     },
     eventFromBackend:{
 

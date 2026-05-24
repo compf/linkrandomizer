@@ -4,7 +4,6 @@ import { performInteractiveAnalysis } from '../ai/ai-assisted-schema-finder.js';
 import { exec } from 'child_process';
 import { executeBrowserAction, type GetLinksAction } from '../agent/actions.js';
 import { generateRandomURL, type GeneratedURL, type Website, type WebsiteService } from '@linkrandomizer/common';
-import { explainURL } from '../ai/explain-url.js';
 import { type ChatHistory } from '@linkrandomizer/common';
 import { publicWebsites } from '@linkrandomizer/common';
 import { sendToControlWindow } from '../mainBackend.js';
