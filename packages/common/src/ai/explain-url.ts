@@ -70,14 +70,11 @@ export const explainURL = async (
     });
     console.log("Transformed messages for OpenAI:", messagesTransformed);
 
-   
+   try{
     const response = await post(messagesTransformed);
-
     return response;
-
-
-
-
-
+   }catch(error){
+    return "Error explaining URL:"+(error instanceof Error ? error.message : String(error));
+   }
 };
 
