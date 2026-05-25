@@ -5,7 +5,7 @@ import { EventFromBackendType } from "@linkrandomizer/common";
     providedIn: 'root'
 })
 export  class FrontendService{
-   private isElectron:boolean=window.isElectron;
+   public isElectron:boolean=window.isElectron;
 }
 
 const registeredCallbacks:Record<string,((data:any)=>void)>={

@@ -9,6 +9,7 @@ import { WebsiteAnalyzerComponent } from './components/website-analyzer.componen
 import { ElectronService } from '@linkrandomizer/common';
 import { FrontendUrlHandler } from './frontend-handler/frontend-url-handler';
 import { FrontendWebsiteHandler } from './frontend-handler/frontend-website-handler';
+import { FrontendService } from './frontend-handler/frontend-service';
 
 if(window.isElectron){
   console.log("Running in electron");
@@ -44,6 +45,7 @@ if(window.isElectron){
 })
 class App implements OnInit {
   activeTab = 'generator';
+  frontendService=inject(FrontendService);
 
   ngOnInit() {
     console.log('App initialized with IPC:', window.api);

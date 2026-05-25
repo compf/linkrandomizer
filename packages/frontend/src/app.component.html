@@ -8,6 +8,7 @@
       Generate URLs
     </button>
     <button
+    [disabled]="!frontendService.isElectron"
       [class.active]="activeTab === 'analyzer'"
       (click)="activeTab = 'analyzer'"
       class="tab-button">
