@@ -1,5 +1,4 @@
 import { ChatCompletionMessageParam } from "openai/resources/chat/completions/index.js"
-export const OpenAI_API_KEY="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";
 
 export const post=async(messages:ChatCompletionMessageParam[]):Promise<string>=>{
     const body={
