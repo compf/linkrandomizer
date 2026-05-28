@@ -10,6 +10,7 @@ import { ElectronService } from '@linkrandomizer/common';
 import { FrontendUrlHandler } from './frontend-handler/frontend-url-handler';
 import { FrontendWebsiteHandler } from './frontend-handler/frontend-website-handler';
 import { FrontendService } from './frontend-handler/frontend-service';
+import { RandomFactsComponent } from './components/random-facts/random-facts';
 
 if(window.isElectron){
   console.log("Running in electron");
@@ -41,7 +42,7 @@ if(window.isElectron){
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule, UrlGeneratorComponent, WebsiteAnalyzerComponent]
+  imports: [CommonModule, FormsModule, UrlGeneratorComponent, WebsiteAnalyzerComponent, RandomFactsComponent]
 })
 class App implements OnInit {
   activeTab = 'generator';

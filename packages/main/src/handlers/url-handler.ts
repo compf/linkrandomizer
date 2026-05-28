@@ -36,8 +36,12 @@ export const UrlHandler: UrlService = {
                 return Promise.resolve("Error explaining URL:"+(error instanceof Error ? error.message : String(error)));
             }
         },
-        getKey(): Promise<string> {
-            return Promise.resolve(process.env.OPENAI_API_KEY ?? "");
+        async getKey(): Promise<string> {
+            if(!apiKey){
+                const config=await import("../config.js")
+                apiKey=config.default;
+            }
+            return Promise.resolve(apiKey);
         }
 
     },
@@ -49,3 +53,5 @@ export const UrlHandler: UrlService = {
     }
 
 }
+
+let  apiKey:string|undefined=undefined;

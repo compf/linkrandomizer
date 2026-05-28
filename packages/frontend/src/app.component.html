@@ -14,9 +14,16 @@
       class="tab-button">
       Analyze Website
     </button>
+    <button
+      [class.active]="activeTab === 'random-facts'"
+      (click)="activeTab = 'random-facts'"
+      class="tab-button">
+      Random Facts
+    </button>
   </div>
   <div class="tab-container">
     <app-url-generator *ngIf="activeTab === 'generator'"></app-url-generator>
     <app-website-analyzer *ngIf="activeTab === 'analyzer'"></app-website-analyzer>
+    <app-random-facts *ngIf="activeTab === 'random-facts'"></app-random-facts>
   </div>
 </div>
