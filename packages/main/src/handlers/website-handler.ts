@@ -1,4 +1,4 @@
-import { shell } from 'electron';
+import { dialog, shell } from 'electron';
 import { chromium } from 'playwright';
 import { performInteractiveAnalysis } from '../ai/ai-assisted-schema-finder.js';
 import { exec } from 'child_process';
@@ -7,37 +7,35 @@ import { generateRandomURL, type GeneratedURL, type Website, type WebsiteService
 import { type ChatHistory } from '@linkrandomizer/common';
 import { publicWebsites } from '@linkrandomizer/common';
 import { sendToControlWindow } from '../mainBackend.js';
+import { findURLS, setActive } from '../agent/simple-url-finder.js';
+import fs from 'fs';
+import type { WebsiteController } from '../../url-finder-type.js';
 export const WebsiteHandler: WebsiteService = {
     sendToBackend: {
-        
+        setActive: (active: boolean): void => {
+            setActive(active);
+        },
 
-        analyzeWebsite: async (data: { url: string; existingLinks: string[] }): Promise<void> => {
+        analyzeWebsite: async (data: { url: string; maxDepth: number; canBeVisitedRegex: string; canBeReturnedRegex: string }): Promise<void> => {
 
             try {
                 // Launch browser for interactive analysis
                 const browser = await chromium.launch({ headless: false });
                 const page = await browser.newPage();
+                const filePath=dialog.showOpenDialogSync({title:"Select a file",filters:[{name:"js",extensions:["js"]}]})
+                if(!filePath?.[0]){
+                    return;
+                }
+                const module=await (import(filePath?.[0]))
+                const controller=Object.values(module)[0] as WebsiteController;
+                const urls = await findURLS(page, controller);
+                console.log("urls:", urls);
     
-                const collectedUrls = new Set<string>();
-                const visitedPages = new Set<string>();
-                const output: string[] = [];
-
-                // Start with initial page
-                await executeBrowserAction({ actionType: 'goto', url: data.url }, page, output);
-                visitedPages.add(data.url);
-                //await page.waitForTimeout(20_000);
-
-                // Get initial links
-                const getLinksAction = { actionType: 'getLinks' } as GetLinksAction
-               const links= await executeBrowserAction(getLinksAction , page, output    );
-                const schemas=await performInteractiveAnalysis(output,page);
-              
-                console.log("schemas:", schemas);
+               
                 
 
 
-        
-                await browser.close();
+        await browser.close();
 
                
 
@@ -51,6 +49,7 @@ export const WebsiteHandler: WebsiteService = {
        
     },
 
+
     invokeFromBackend: {
        
        
@@ -61,11 +60,9 @@ export const WebsiteHandler: WebsiteService = {
         randomUrlsGenerated: (urls: string[], callback?: (urls: string[]) => void): void => {
                 sendToControlWindow('randomUrlsGenerated', urls);
             },
-        websiteAnalysisComplete: (schemas: Website[], callback?: (schemas: Website[]) => void): void => {
-            sendToControlWindow('websiteAnalysisComplete', schemas);
+        webSiteAnalysisStateChanged: (state: number, callback?: (state: number) => void): void => {
+            sendToControlWindow('webSiteAnalysisStateChanged', state);
         },
-        websiteAnalysisStatus: (status: string, callback?: (status: string) => void): void => {
-            sendToControlWindow('websiteAnalysisStatus', status);
-        }
+       
     }
 };

@@ -12,37 +12,24 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 export class WebsiteAnalyzerComponent implements OnInit {
   websiteUrl = '';
   isAnalyzing = false;
-  analysisStatus = '';
-  analyzedSchemas: any[] = [];
 
+
+  obtainedUrls = signal<string[]>([]);
+  numberOfUrls = signal<number>(0);
+  maxDepth = 3;
+  canBeVisitedRegex = '';
+  canBeReturnedRegex = '';
   ngOnInit() {
-    (window as any).api.eventFromBackend.websiteAnalysisComplete((schemas: any[]) => {
-      this.analyzedSchemas = schemas;
-      this.isAnalyzing = false;
-      this.analysisStatus = 'Complete';
-    });
-
-    (window as any).api.eventFromBackend.websiteAnalysisStatus((status: string) => {
-      this.analysisStatus = status;
-      if (status === 'analysis_started') {
-        this.isAnalyzing = true;
-      }
-      if (status === 'analysis_done' || status === 'analysis_error') {
-        this.isAnalyzing = false;
-      }
+    (window as any).api.eventFromBackend.webSiteAnalysisStateChanged((state: number) => {
+      this.numberOfUrls.set(state);
     });
   }
 
   analyzeWebsite() {
-    if (this.websiteUrl) {
-      this.isAnalyzing = true;
-      this.analysisStatus = 'Sending request...';
-     window.api.sendToBackend.analyzeWebsite({ url: this.websiteUrl, existingLinks: [] });
-    }
-  }
-
-  getSchemaPreview(schema: any): string {
-    // Simple preview of the schema
-    return schema.schema.map((part: any) => typeof part === 'string' ? part : `{${part.variable}}`).join('');
+  
+      window.api.sendToBackend.setActive(!this.isAnalyzing);
+      this.isAnalyzing=!this.isAnalyzing;
+      window.api.sendToBackend.analyzeWebsite({ url: this.websiteUrl, maxDepth: this.maxDepth, canBeVisitedRegex: this.canBeVisitedRegex, canBeReturnedRegex: this.canBeReturnedRegex });
+    
   }
 }

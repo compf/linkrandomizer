@@ -6,7 +6,8 @@ import { unsupported } from "./abstract-service.js"
 
 export const WebsiteServiceSchema = {
     sendToBackend: {
-        analyzeWebsite: (data: { url: string; existingLinks: string[] }): void => unsupported(),
+        analyzeWebsite: (data: { url: string; maxDepth: number; canBeVisitedRegex: string; canBeReturnedRegex: string }): void => unsupported(),
+        setActive: (active: boolean): void => unsupported(),
     },
 
     invokeFromBackend: {
@@ -14,8 +15,7 @@ export const WebsiteServiceSchema = {
 
     eventFromBackend: {
         randomUrlsGenerated: (urls: string[], callback?: (urls: string[]) => void): void => unsupported(),
-        websiteAnalysisComplete: (schemas: Website[], callback?: (schemas: Website[]) => void): void => unsupported(),
-        websiteAnalysisStatus: (status: string, callback?: (status: string) => void): void => unsupported()
+        webSiteAnalysisStateChanged: (state: number, callback?: (state: number) => void): void => unsupported(),
     }
 }
 

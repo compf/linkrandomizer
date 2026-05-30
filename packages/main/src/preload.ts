@@ -14,14 +14,14 @@ const logging = (text: string) => {
 };
 const sendToBackendServices:Record<keyof SendToBackendType,null>={
 	analyzeWebsite:null,
+	setActive:null,
 	openUrlInBrowser:null,
 	obtainUrlContent:null
 }
 
 const EventFromBackendServices:Record<keyof EventFromBackendType,null>={
 	randomUrlsGenerated:null,
-	websiteAnalysisComplete:null,
-	websiteAnalysisStatus:null,
+	webSiteAnalysisStateChanged:null,
 	onContentLoaded:null
 }
 
