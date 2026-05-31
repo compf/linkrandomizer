@@ -2,17 +2,15 @@ import type { Page } from 'playwright';
 import OpenAI from 'openai';
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 import { zodResponseFormat, zodTextFormat } from "openai/helpers/zod";
-import { opennAI_API_KEY } from '../config.js';
 import { url } from 'inspector';
 import {z} from 'zod';
 import { BrowserActionSchema, executeBrowserAction } from '../agent/actions.js';
 import { exec } from 'child_process';
 import { type Website, WebsiteSchema } from '@linkrandomizer/common';
+import { UrlHandler } from '../handlers/url-handler.js';
 
 // Initialize OpenAI
-const openai = new OpenAI({
-    apiKey:  opennAI_API_KEY
-});
+
 export const ReplySchema = z.object({
     actions:z.array(BrowserActionSchema),
     analysis_complete:z.boolean(),
@@ -25,6 +23,9 @@ export const performInteractiveAnalysis = async (
     page: Page
 ): Promise<Website[]> => {
     let schemas: Website[] = [];
+    const openai = new OpenAI({
+        apiKey:  await UrlHandler.invokeFromBackend.getKey()
+    });
 
 
 

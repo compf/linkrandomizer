@@ -14,22 +14,20 @@ const logging = (text: string) => {
 };
 const sendToBackendServices:Record<keyof SendToBackendType,null>={
 	analyzeWebsite:null,
+	setActive:null,
 	openUrlInBrowser:null,
 	obtainUrlContent:null
 }
 
 const EventFromBackendServices:Record<keyof EventFromBackendType,null>={
 	randomUrlsGenerated:null,
-	websiteAnalysisComplete:null,
-	websiteAnalysisStatus:null,
+	webSiteAnalysisStateChanged:null,
 	onContentLoaded:null
 }
 
 const InvokeFromBackendServices:Record<keyof InvokeFromBackendType,null>={
-	getAvailableWebsites:null,
 	explainUrl:null,
-	
-	saveWebsites:null
+	getKey:null
 }
 const  sendToBackend=Object.keys(sendToBackendServices).map((it)=>{
 	return [it,(data:any)=>{
@@ -68,5 +66,6 @@ contextBridge.exposeInMainWorld('api', {
 	
 	
 });
+contextBridge.exposeInMainWorld('isElectron',true);
 
 console.log('The preload script has been injected successfully.');

@@ -1,0 +1,11 @@
+<div>
+    <h1>Random Facts</h1>
+    <input type="text" [(ngModel)]="topic" placeholder="Enter a topic" />
+    <input type="number" [(ngModel)]="count" placeholder="Enter a number of facts" />
+    <button (click)="getFacts()">Get Facts</button>
+    <ul>
+        @for(fact of facts(); track fact) {
+            <li>{{ fact }}</li>
+        }
+    </ul>
+</div>

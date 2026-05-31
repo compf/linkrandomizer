@@ -3,7 +3,6 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { WebsiteHandler } from './handlers/website-handler.js';
 import { UrlHandler } from './handlers/url-handler.js';
-import { loadWebsites } from './data/websites-data.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 let controlWindow: BrowserWindow|undefined=undefined
@@ -77,18 +76,8 @@ const createMenu = () => {
     {
       label: 'File',
       submenu: [
-        {
-          label: 'Save Websites',
-          accelerator: 'CmdOrCtrl+S',
-          click: async () => {
-            try {
-              await WebsiteHandler.invokeFromBackend.saveWebsites();
-              console.log('Websites saved');
-            } catch (error) {
-              console.error('Error saving websites:', error);
-            }
-          }
-        },
+        
+        
         { type: 'separator' },
         { role: 'quit' }
       ]
@@ -109,7 +98,7 @@ const createMenu = () => {
       submenu: [
         { role: 'reload' },
         { role: 'forceReload' },
-        { role: 'toggleDevTools' },
+        { role: 'toggleDevTools', accelerator: 'F12' },
         { type: 'separator' },
         { role: 'resetZoom' },
         { role: 'zoomIn' },
@@ -131,7 +120,6 @@ export const sendToControlWindow=(channel:keyof EventFromBackendType, data:any)=
 
 
 app.whenReady().then(async ()=>{
-    await loadWebsites();
     createWindow();
     createMenu();
  

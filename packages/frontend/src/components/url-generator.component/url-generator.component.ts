@@ -5,11 +5,10 @@ import { MatDialog } from "@angular/material/dialog";
 import { MatSelectModule } from "@angular/material/select";
 import { MatIconModule } from "@angular/material/icon";
 import { MatTreeModule } from "@angular/material/tree";
-import { Website, GroupedURl, GeneratedURL, generateRandomURL, GroupByVariables, UrlGrouper, NoGrouping } from "@linkrandomizer/common";
+import { Website, GroupedURl, GeneratedURL, generateRandomURL, GroupByVariables, UrlGrouper, NoGrouping, publicWebsites, loadExtractedUrls } from "@linkrandomizer/common";
 import { ChatDialogComponent } from "../chat.component/chat.component";
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { availableGroupers,getTagsForWebsites } from "@linkrandomizer/common";
-import { WebsiteManager } from "../website-manager/website-manager";
 @Component({
   selector: 'app-url-generator',
   templateUrl: './url-generator.component.html',
@@ -72,7 +71,8 @@ export class UrlGeneratorComponent implements OnInit {
 
   async loadWebsites() {
     try {
-      this.allWebsites.set( await (window as any).api.invokeFromBackend.getAvailableWebsites());
+      await loadExtractedUrls();
+      this.allWebsites.set(publicWebsites);
     } catch (error) {
       console.error('Error loading websites:', error);
     }
@@ -86,7 +86,7 @@ export class UrlGeneratorComponent implements OnInit {
   async loadTags() {
    const tags: Set<string> = new Set();
     try {
-      const websites: Website[] = await (window as any).api.invokeFromBackend.getAvailableWebsites();
+      const websites: Website[] = publicWebsites;
       getTagsForWebsites(websites)
       this.allTags.set(getTagsForWebsites(websites));
     } catch (error) {
@@ -161,14 +161,6 @@ export class UrlGeneratorComponent implements OnInit {
   }
 
   manageWebsites() {
-    this.dialog.open(WebsiteManager,
-      {
-        panelClass:"fullscreen-overlay-panel",
-        width:"1920px",
-        height:"1080px",
-        maxWidth:"1920px",
-        maxHeight:"1080px"
-      }
-    );
+   
   }
 }

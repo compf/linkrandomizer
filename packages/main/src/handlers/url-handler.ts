@@ -1,6 +1,5 @@
-import { type UrlService, type GeneratedURL, type ChatMessage, type ChatHistory } from "@linkrandomizer/common";
+import { type UrlService, type GeneratedURL, type ChatMessage, type ChatHistory, explainURL } from "@linkrandomizer/common";
 import { shell } from "electron/common";
-import { explainURL } from "../ai/explain-url.js";
 import { sendToControlWindow } from "../mainBackend.js";
 import { GeneratedURLContentObtainer, ImageInClipboardObtainer, UrlInClipboardObtainer } from "../agent/content-obtainer.js";
 export const UrlHandler: UrlService = {
@@ -36,6 +35,13 @@ export const UrlHandler: UrlService = {
             catch(error){
                 return Promise.resolve("Error explaining URL:"+(error instanceof Error ? error.message : String(error)));
             }
+        },
+        async getKey(): Promise<string> {
+            if(!apiKey){
+                const config=await import("../config.js")
+                apiKey=config.default;
+            }
+            return Promise.resolve(apiKey);
         }
 
     },
@@ -47,3 +53,5 @@ export const UrlHandler: UrlService = {
     }
 
 }
+
+let  apiKey:string|undefined=undefined;

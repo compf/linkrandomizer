@@ -1,22 +1,18 @@
-import type { Page } from 'playwright';
-import OpenAI from 'openai';
-import type { ChatCompletionMessageParam, ChatCompletionAssistantMessageParam, ChatCompletionUserMessageParam, ChatCompletionContentPart } from 'openai/resources/chat/completions';
-import { zodResponseFormat, zodTextFormat } from "openai/helpers/zod";
-import { opennAI_API_KEY } from '../config.js';
-import { url } from 'inspector';
-import { z } from 'zod';
-import { BrowserActionSchema, executeBrowserAction } from '../agent/actions.js';
-import { exec } from 'child_process';
-import { type ChatHistory, type GeneratedURL, type ChatMessage, type Website, WebsiteSchema } from '@linkrandomizer/common';
-import type { EasyInputMessage, ResponseCreateParams } from 'openai/resources/responses/responses.mjs';
-
-// Initialize OpenAI
-const openai = new OpenAI({
-    apiKey: opennAI_API_KEY
-});
+import { ChatCompletionAssistantMessageParam, ChatCompletionContentPart, ChatCompletionMessageParam, ChatCompletionUserMessageParam } from "openai/resources";
+import { ChatHistory, ChatMessage, GeneratedURL } from "../index.js";
+import openai from "openai";
+import { post } from "./ai-agent.js";
 
 const transformBufferToBase64 = (imageBuffer: ArrayBufferLike): string => {
-    return Buffer.from(imageBuffer).toString('base64');
+    
+        var binary = '';
+        var bytes = new Uint8Array( imageBuffer );
+        var len = bytes.byteLength;
+        for (var i = 0; i < len; i++) {
+            binary += String.fromCharCode( bytes[ i ] );
+        }
+        return window.btoa( binary );
+    
 
 }
 
@@ -74,19 +70,11 @@ export const explainURL = async (
     });
     console.log("Transformed messages for OpenAI:", messagesTransformed);
 
-   
-    const response = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: messagesTransformed,
-        max_completion_tokens:16_000,
-    });
-    console.log("OpenAI response:", response.choices[0]?.message.content);
-
-    return response.choices[0]?.message.content || "";
-
-
-
-
-
+   try{
+    const response = await post(messagesTransformed);
+    return response;
+   }catch(error){
+    return "Error explaining URL:"+(error instanceof Error ? error.message : String(error));
+   }
 };
 
