@@ -160,7 +160,23 @@ export class UrlGeneratorComponent implements OnInit {
     });
   }
 
-  manageWebsites() {
-   
+ randomUrl() {
+  const targetIndex=Math.floor(Math.random()*this.urlCount);
+  this.randomURlRecu(this.groupedUrls()[0], 0, targetIndex);
+ }
+
+ private randomURlRecu(url:GroupedURl, currIndex:number, targetIndex:number){
+  for(const u of url.urls){
+    if(currIndex>=targetIndex){
+      this.openUrl(u.url);
+      this.openChatDialog(u);
+      return -10;
+    }
+    currIndex++;
   }
+  for(const g of url.children){
+    currIndex+=this.randomURlRecu(g, currIndex, targetIndex); 
+  }
+  return currIndex;
+ }
 }
