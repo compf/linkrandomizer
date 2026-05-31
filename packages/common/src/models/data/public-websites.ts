@@ -1,11 +1,45 @@
 import type { Website } from "../website_schemas.js";
 
+type ExtractedUrls = {
+    name: string;
+    urlsToVisit: Record<string, number | null>;
+    urlsToReturn: string[];
+};
+
+const extractedUrlsBasePath = "extracted-urls/";
+
+async function loadExtractedUrlsFile(filename: string): Promise<ExtractedUrls> {
+    const response = await fetch(`${extractedUrlsBasePath}${filename}`);
+    console.log("response:", response);
+    if (!response.ok) {
+        throw new Error(`Failed to load ${extractedUrlsBasePath}${filename}: ${response.status}`);
+    }
+    return response.json() as Promise<ExtractedUrls>;
+}
+
 export const publicWebsites: Website[] = [
+    {
+        name:"nytimes time machine",
+        tags:["newspaper","english"],
+        //https://timesmachine.nytimes.com/timesmachine/1992/11/05/issue.html
+        schema:["https://timesmachine.nytimes.com/timesmachine/",{variable:"year",padding:null},"/",{variable:"month",padding:2},"/",{variable:"day",padding:2},"/issue.html"],
+        variables:[
+            {
+                name:"randomDate",
+                minYear:1860,
+                maxYearExclusive:2003,
+            }
+
+        ],
+        downloadType:"screenshotInClipboard",
+    
+    
+    },
 
     {
         name: "völkischer beobachter",
         version: 1,
-        tags: ["nazi", "propaganda"],
+        tags: ["german","newspaper"],
         schema: [
             "https://anno.onb.ac.at/cgi-content/anno?aid=vob&datum=",
             { variable: "year", padding: null },
@@ -79,7 +113,7 @@ export const publicWebsites: Website[] = [
             "&submit=Datum+einschr%C3%A4nken"
         ],
         downloadType: "downloadFromURLInClipboard",
-        tags: ["government", "legal", "german"],
+        tags: ["legal", "german"],
         variables: [
             {
                 name: "randomDateRange",
@@ -281,7 +315,7 @@ export const publicWebsites: Website[] = [
 
         ],
         downloadType: "downloadFromGeneratedURL",
-        tags: ["wikipedia", "history", "usa"],
+        tags: ["wikipedia", "history", "english"],
         variables: [
             {
                 name: "randomFromRange",
@@ -320,7 +354,7 @@ export const publicWebsites: Website[] = [
         ],
         downloadType: "downloadFromGeneratedURL",
 
-        tags: ["wikipedia", "history"],
+        tags: ["wikipedia", "history", "english"],
         variables: [
             {
                 name: "randomFromRange",
@@ -402,4 +436,71 @@ export const publicWebsites: Website[] = [
         ]
 
     },
+    {
+        name: "heise",
+        schema: [
+           {
+            variable:"url",
+            padding:null
+           }
+        ],
+        tags:["german","technology","newspaper"],
+        downloadType: "downloadFromGeneratedURL",
+        variables: [
+            {
+                name: "randomFromSelection",
+                variableName: "url",
+                values:[]
+               
+            }
+        ]
+    },
+    {
+        name:"trump legal cases",
+        schema: [
+            { variable: "url", padding: null }
+        ],
+        downloadType: "downloadFromGeneratedURL",
+        tags: ["legal", "english"],
+        variables: [
+            {
+                name: "randomFromSelection",
+                variableName: "url",
+                values:[]
+            }
+        ]
+    }
 ]
+
+const heiseUrls = publicWebsites
+    .find(website => website.name === "heise")
+    ?.variables?.find(variable => variable.name === "randomFromSelection")
+    ?.values!;
+
+const trumpLegalCasesUrls = publicWebsites
+    .find(website => website.name === "trump legal cases")
+    ?.variables?.find(variable => variable.name === "randomFromSelection")
+    ?.values!;
+
+let extractedUrlsLoaded = false;
+let extractedUrlsLoadPromise: Promise<void> | undefined;
+
+export async function loadExtractedUrls(): Promise<void> {
+    console.log("loading extracted urls");
+    if (extractedUrlsLoaded) {
+        return;
+    }
+    if (!extractedUrlsLoadPromise) {
+        extractedUrlsLoadPromise = Promise.all([
+            loadExtractedUrlsFile("heise.json"),
+            loadExtractedUrlsFile("trump_legal_cases.json"),
+        ]).then(([heise, trumpLegalCases]) => {
+            console.log("heise:", heise);
+            console.log("trumpLegalCases:", trumpLegalCases);
+            heiseUrls.push(...heise.urlsToReturn);
+            trumpLegalCasesUrls.push(...(trumpLegalCases.urlsToReturn));
+            extractedUrlsLoaded = true;
+        });
+    }
+    return extractedUrlsLoadPromise;
+}

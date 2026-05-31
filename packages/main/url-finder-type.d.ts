@@ -4,9 +4,12 @@ export interface WebsiteController{
     requireUserAttention(page:Page):Promise<boolean>;
     maxDepth():number;
     initialUrl():string;
+    name():string;
+    parentDomain():string;
 }
 
 export type ExtractedUrls={
     name:string;
-    prefixToUrls:Record<string,string[]>;
+    urlsToVisit:Record<string,number|null>;
+    urlsToReturn:string[]
 }

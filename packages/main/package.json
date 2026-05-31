@@ -5,7 +5,7 @@
   "main": "launcher.cjs",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "start": "npx electron ."
+    "start": "npx electron --inspect=0.0.0.0:9229 ."
   },
   "devDependencies": {
     "@types/node": "^18.0.0",

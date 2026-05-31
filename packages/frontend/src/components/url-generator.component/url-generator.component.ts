@@ -5,7 +5,7 @@ import { MatDialog } from "@angular/material/dialog";
 import { MatSelectModule } from "@angular/material/select";
 import { MatIconModule } from "@angular/material/icon";
 import { MatTreeModule } from "@angular/material/tree";
-import { Website, GroupedURl, GeneratedURL, generateRandomURL, GroupByVariables, UrlGrouper, NoGrouping, publicWebsites } from "@linkrandomizer/common";
+import { Website, GroupedURl, GeneratedURL, generateRandomURL, GroupByVariables, UrlGrouper, NoGrouping, publicWebsites, loadExtractedUrls } from "@linkrandomizer/common";
 import { ChatDialogComponent } from "../chat.component/chat.component";
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { availableGroupers,getTagsForWebsites } from "@linkrandomizer/common";
@@ -71,7 +71,8 @@ export class UrlGeneratorComponent implements OnInit {
 
   async loadWebsites() {
     try {
-      this.allWebsites.set( publicWebsites);
+      await loadExtractedUrls();
+      this.allWebsites.set(publicWebsites);
     } catch (error) {
       console.error('Error loading websites:', error);
     }
