@@ -27,6 +27,90 @@
   margin-bottom: 12px;
 }
 
+#ranking {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e8eaed;
+}
+
+#ranking mat-form-field {
+  width: 100%;
+}
+
+.ranker-config {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.ranker-config label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+
+.ranker-config input,
+.ranker-config select,
+.ranker-config textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  font: inherit;
+}
+
+.ranker-help {
+  margin: 0;
+  color: #5f6368;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.ranker-error {
+  margin: 0;
+  color: #b3261e;
+  font-size: 0.85rem;
+}
+
+.ranker-script {
+  margin: 0;
+  padding: 10px;
+  border-radius: 8px;
+  background: #f1f3f4;
+  font-size: 0.75rem;
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+
+.tag-priority-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 0;
+}
+
+.tag-priority-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.tag-priority-actions button {
+  border: 1px solid #dadce0;
+  background: #fff;
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.tag-priority-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .tag-checkbox {
   display: flex;
   align-items: center;

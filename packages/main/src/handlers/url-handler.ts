@@ -1,4 +1,4 @@
-import { type UrlService, type GeneratedURL, type ChatMessage, type ChatHistory, explainURL } from "@linkrandomizer/common";
+import { type UrlService, type GeneratedURL, type ChatMessage, type ChatHistory, explainURL, generateRankScript } from "@linkrandomizer/common";
 import { shell } from "electron/common";
 import { sendToControlWindow } from "../mainBackend.js";
 import { GeneratedURLContentObtainer, ImageInClipboardObtainer, UrlInClipboardObtainer } from "../agent/content-obtainer.js";
@@ -34,6 +34,15 @@ export const UrlHandler: UrlService = {
 
             catch(error){
                 return Promise.resolve("Error explaining URL:"+(error instanceof Error ? error.message : String(error)));
+            }
+        },
+        generateRankScript(data: { preferences: string; target: "url" | "website" | "both" }): Promise<string> {
+            try {
+                return generateRankScript(data.preferences, data.target);
+            } catch (error) {
+                return Promise.resolve(
+                    "Error generating rank script:" + (error instanceof Error ? error.message : String(error))
+                );
             }
         },
         async getKey(): Promise<string> {

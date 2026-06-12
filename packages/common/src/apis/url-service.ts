@@ -20,6 +20,7 @@ export const UrlServiceSchema={
     },
     invokeFromBackend:{
         explainUrl:(data:{url:GeneratedURL,messages:ChatHistory}):Promise<string>=>unsupported(),
+        generateRankScript:(data:{preferences:string,target:"url"|"website"|"both"}):Promise<string>=>unsupported(),
         getKey:():Promise<string>=>unsupported()
     },
     eventFromBackend:{

@@ -5,10 +5,28 @@ import { MatDialog } from "@angular/material/dialog";
 import { MatSelectModule } from "@angular/material/select";
 import { MatIconModule } from "@angular/material/icon";
 import { MatTreeModule } from "@angular/material/tree";
-import { Website, GroupedURl, GeneratedURL, generateRandomURL, GroupByVariables, UrlGrouper, NoGrouping, publicWebsites, loadExtractedUrls } from "@linkrandomizer/common";
+import {
+  Website,
+  GroupedURl,
+  GeneratedURL,
+  generateRandomURL,
+  UrlGrouper,
+  NoGrouping,
+  publicWebsites,
+  loadExtractedUrls,
+  availableGroupers,
+  getTagsForWebsites,
+  ItemRanker,
+  RankerName,
+  createRanker,
+  rankerNames,
+  pickWebsiteByRank,
+  sortGroupedUrls,
+  defaultDateProximityConfig,
+  defaultTagRankerConfig,
+} from "@linkrandomizer/common";
 import { ChatDialogComponent } from "../chat.component/chat.component";
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { availableGroupers,getTagsForWebsites } from "@linkrandomizer/common";
 @Component({
   selector: 'app-url-generator',
   templateUrl: './url-generator.component.html',
@@ -28,6 +46,16 @@ export class UrlGeneratorComponent implements OnInit {
     urls:[]
   }]);
 
+  protected rankerNames = rankerNames;
+  selectedRankerName: RankerName = "No ranking";
+  targetYear = defaultDateProximityConfig().targetYear;
+  targetMonth = defaultDateProximityConfig().targetMonth ?? 1;
+  tagPriority: string[] = [];
+  aiPreferences = "";
+  aiRankTarget: "url" | "website" | "both" = "both";
+  aiRankScript = "";
+  aiRankLoading = false;
+  aiRankError = "";
 
   hasChild = (_: number, node: GroupedURl) => {
     
@@ -64,6 +92,8 @@ export class UrlGeneratorComponent implements OnInit {
     for(const tag of this.allTags()){
       this.selectedTags[tag]=true;
     }
+    this.tagPriority = [...this.allTags()];
+    this.ranker = this.buildRanker();
     await this.generateUrls();
     
    
@@ -84,10 +114,8 @@ export class UrlGeneratorComponent implements OnInit {
   }
 
   async loadTags() {
-   const tags: Set<string> = new Set();
     try {
       const websites: Website[] = publicWebsites;
-      getTagsForWebsites(websites)
       this.allTags.set(getTagsForWebsites(websites));
     } catch (error) {
       console.error('Error loading tags:', error);
@@ -105,9 +133,9 @@ export class UrlGeneratorComponent implements OnInit {
       const filteredWebsites=this.allWebsites().filter(w => selectedTagList.some(t => w.tags.includes(t)))
       console.log("filtered websites:", filteredWebsites)
       return filteredWebsites;
-      return 
     } catch (error) {
       console.error('Error filtering websites:', error);
+      return [];
     }
   }
 
@@ -126,15 +154,17 @@ export class UrlGeneratorComponent implements OnInit {
       console.warn("No websites match the selected tags, skipping URL generation");
       return;
     }
+    this.ranker = this.buildRanker();
     for(let i=0;i<this.urlCount;i++){
-      const randomWebsite=filteredWebsites[Math.floor(Math.random()*filteredWebsites.length)]
-      const url=generateRandomURL(randomWebsite);
+      const website = pickWebsiteByRank(filteredWebsites, this.ranker);
+      const url=generateRandomURL(website);
       generated.push(url);
     }
     const grouper=this.grouper;
     const grouped=grouper.group(generated);
-    console.log("Generated URLs grouped:", grouped);
-    this.groupedUrls.set([grouped]);
+    const rankedGrouped = sortGroupedUrls(grouped, this.ranker);
+    console.log("Generated URLs grouped:", rankedGrouped);
+    this.groupedUrls.set([rankedGrouped]);
   }  catch(error){
     console.error("Error generating URLs:", error);
   }
@@ -143,10 +173,76 @@ export class UrlGeneratorComponent implements OnInit {
   private dialog=inject(MatDialog)
   protected grouperNames=Object.keys(availableGroupers)
   private grouper:UrlGrouper=new NoGrouping()
+  private ranker: ItemRanker = createRanker("No ranking");
 
   protected changeGrouper(name:string){
   this.grouper=availableGroupers[name as keyof typeof availableGroupers]
   this.generateUrls()
+  }
+
+  protected changeRanker(name: RankerName) {
+    this.selectedRankerName = name;
+    this.generateUrls();
+  }
+
+  protected onRankingConfigChange() {
+    this.generateUrls();
+  }
+
+  protected moveTagUp(index: number) {
+    if (index <= 0) {
+      return;
+    }
+    const next = [...this.tagPriority];
+    [next[index - 1], next[index]] = [next[index], next[index - 1]];
+    this.tagPriority = next;
+    this.onRankingConfigChange();
+  }
+
+  protected moveTagDown(index: number) {
+    if (index >= this.tagPriority.length - 1) {
+      return;
+    }
+    const next = [...this.tagPriority];
+    [next[index + 1], next[index]] = [next[index], next[index + 1]];
+    this.tagPriority = next;
+    this.onRankingConfigChange();
+  }
+
+  protected async generateAiRanker() {
+    if (!this.aiPreferences.trim()) {
+      this.aiRankError = "Describe what you want to rank first.";
+      return;
+    }
+
+    this.aiRankLoading = true;
+    this.aiRankError = "";
+    try {
+      this.aiRankScript = await window.api.invokeFromBackend.generateRankScript({
+        preferences: this.aiPreferences,
+        target: this.aiRankTarget,
+      });
+      this.selectedRankerName = "AI custom";
+      await this.generateUrls();
+    } catch (error) {
+      this.aiRankError = error instanceof Error ? error.message : String(error);
+    } finally {
+      this.aiRankLoading = false;
+    }
+  }
+
+  private buildRanker(): ItemRanker {
+    return createRanker(this.selectedRankerName, {
+      dateProximity: {
+        targetYear: this.targetYear,
+        targetMonth: this.targetMonth,
+      },
+      tagPriority: defaultTagRankerConfig(this.tagPriority),
+      ai: {
+        script: this.aiRankScript,
+        target: this.aiRankTarget,
+      },
+    });
   }
   
 
@@ -165,7 +261,7 @@ export class UrlGeneratorComponent implements OnInit {
   this.randomURlRecu(this.groupedUrls()[0], 0, targetIndex);
  }
 
- private randomURlRecu(url:GroupedURl, currIndex:number, targetIndex:number){
+ private randomURlRecu(url:GroupedURl, currIndex:number, targetIndex:number): number{
   for(const u of url.urls){
     if(currIndex>=targetIndex){
       this.openUrl(u.url);
@@ -174,8 +270,8 @@ export class UrlGeneratorComponent implements OnInit {
     }
     currIndex++;
   }
-  for(const g of url.children){
-    currIndex+=this.randomURlRecu(g, currIndex, targetIndex); 
+  for(const g of url.children ?? []){
+    currIndex=this.randomURlRecu(g, currIndex, targetIndex); 
   }
   return currIndex;
  }

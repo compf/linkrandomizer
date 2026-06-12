@@ -1,4 +1,4 @@
-import { ChatHistory, ChatMessage, explainURL, GeneratedURL, UrlService } from "@linkrandomizer/common";
+import { ChatHistory, ChatMessage, explainURL, generateRankScript, GeneratedURL, UrlService } from "@linkrandomizer/common";
 import {  registerOrCallCallback } from "./frontend-service";
 const openFileDialog=async():Promise<{
     name:string,
@@ -53,6 +53,9 @@ export const FrontendUrlHandler:UrlService={
     invokeFromBackend:{
         explainUrl:(data:{url:GeneratedURL,messages:ChatHistory}):Promise<string>=>{
            return explainURL(data.url, data.messages);
+        },
+        generateRankScript:(data:{preferences:string,target:"url"|"website"|"both"}):Promise<string>=>{
+            return generateRankScript(data.preferences, data.target);
         },
         getKey(): Promise<string> {
             if(apiKey){

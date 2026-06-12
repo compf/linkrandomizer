@@ -19,6 +19,70 @@
         </mat-select>
       </mat-form-field>
     </div>
+
+    <div id="ranking">
+      <h4>Ranking</h4>
+      <mat-form-field appearance="fill">
+        <mat-label>Rank URLs and websites by</mat-label>
+        <mat-select [value]="selectedRankerName" (selectionChange)="changeRanker($event.value)">
+          <mat-option *ngFor="let rankerName of rankerNames" [value]="rankerName">
+            {{ rankerName }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <div class="ranker-config" *ngIf="selectedRankerName === 'Date proximity'">
+        <label>
+          Target year
+          <input type="number" [(ngModel)]="targetYear" (change)="onRankingConfigChange()" />
+        </label>
+        <label>
+          Target month
+          <input type="number" min="1" max="12" [(ngModel)]="targetMonth" (change)="onRankingConfigChange()" />
+        </label>
+        <p class="ranker-help">URLs with dates closer to this year/month appear first.</p>
+      </div>
+
+      <div class="ranker-config" *ngIf="selectedRankerName === 'Daily random'">
+        <p class="ranker-help">Uses a deterministic random order per website, seeded by today's day and month.</p>
+      </div>
+
+      <div class="ranker-config" *ngIf="selectedRankerName === 'By tag priority'">
+        <p class="ranker-help">Higher tags in this list are preferred when picking websites and sorting URLs.</p>
+        <div class="tag-priority-row" *ngFor="let tag of tagPriority; let i = index">
+          <span>{{ i + 1 }}. {{ tag }}</span>
+          <div class="tag-priority-actions">
+            <button type="button" (click)="moveTagUp(i)" [disabled]="i === 0">Up</button>
+            <button type="button" (click)="moveTagDown(i)" [disabled]="i === tagPriority.length - 1">Down</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="ranker-config" *ngIf="selectedRankerName === 'AI custom'">
+        <label>
+          What should be ranked first?
+          <textarea rows="4" [(ngModel)]="aiPreferences" placeholder="Example: Prefer German newspapers from the 1930s"></textarea>
+        </label>
+        <label>
+          AI ranking target
+          <select [(ngModel)]="aiRankTarget">
+            <option value="url">URLs only</option>
+            <option value="website">Websites only</option>
+            <option value="both">Websites and URLs</option>
+          </select>
+        </label>
+        <button type="button" (click)="generateAiRanker()" [disabled]="aiRankLoading">
+          {{ aiRankLoading ? 'Generating ranker...' : 'Generate AI ranker' }}
+        </button>
+        <p class="ranker-error" *ngIf="aiRankError">{{ aiRankError }}</p>
+        <pre class="ranker-script" *ngIf="aiRankScript">{{ aiRankScript }}</pre>
+      </div>
+
+      <div class="ranker-config" *ngIf="selectedRankerName === 'Alphabetical'">
+        <p class="ranker-help">Sorts websites and URLs alphabetically by name and URL.</p>
+      </div>
+    </div>
+
     <button (click)="randomUrl()">I'm feeling lucky</button>
 
     </div>

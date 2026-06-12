@@ -27,6 +27,7 @@ const EventFromBackendServices:Record<keyof EventFromBackendType,null>={
 
 const InvokeFromBackendServices:Record<keyof InvokeFromBackendType,null>={
 	explainUrl:null,
+	generateRankScript:null,
 	getKey:null
 }
 const  sendToBackend=Object.keys(sendToBackendServices).map((it)=>{
