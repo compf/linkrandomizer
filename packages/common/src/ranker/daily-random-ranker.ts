@@ -9,11 +9,11 @@ export class DailyRandomRanker implements ItemRanker {
     }
 
     rankWebsite(website: Website): number {
-        return seededUnitRandom(dailySeed(website.name)) * 1_000_000;
+        return seededUnitRandom(dailySeed(website.schema[0] as string)) * 1_000_000;
     }
 
     rankUrl(url: GeneratedURL): number {
-        return seededUnitRandom(dailySeed(url.website.name, new Date()) ^ dailySeed(url.url)) * 1_000_000;
+        return seededUnitRandom(dailySeed(url.website.schema[0] as string, new Date()) ^ dailySeed(url.url)) * 1_000_000;
     }
 }
 

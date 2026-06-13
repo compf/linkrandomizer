@@ -18,7 +18,7 @@ export class GeneratedURLContentObtainer implements ContentObtainer {
     async loadContent(generateURL: GeneratedURL): Promise<void> {
       
         const arrayBuffer = await getFileDataFromURL(generateURL.url);
-        UrlHandler.eventFromBackend.onContentLoaded({ type: "file", text: undefined, image: undefined, file: { name: generateURL.website.name, data: arrayBuffer } })
+        UrlHandler.eventFromBackend.onContentLoaded({ type: "file", text: undefined, image: undefined, file: { name: "test", data: arrayBuffer } })
         
     }
 }
@@ -30,7 +30,7 @@ export class UrlInClipboardObtainer implements ContentObtainer {
         console.log("Read URL from clipboard:", url);
         const arrayBuffer = await getFileDataFromURL(url);
         console.log("Obtained content from URL in clipboard. URL:", url, "ArrayBuffer:", arrayBuffer);
-        UrlHandler.eventFromBackend.onContentLoaded({ type: "file", text: undefined, image: undefined, file: { name: generateURL.website.name, data: arrayBuffer } })
+        UrlHandler.eventFromBackend.onContentLoaded({ type: "file", text: undefined, image: undefined, file: { name: "test", data: arrayBuffer } })
     }
 }
 

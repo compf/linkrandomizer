@@ -120,7 +120,7 @@ export class UrlGeneratorComponent implements OnInit {
   async loadWebsites() {
     try {
       await loadExtractedUrls();
-      this.allWebsites.set(publicWebsites);
+      this.allWebsites.set(Object.values(publicWebsites));
     } catch (error) {
       console.error('Error loading websites:', error);
     }
@@ -133,7 +133,7 @@ export class UrlGeneratorComponent implements OnInit {
 
   async loadTags() {
     try {
-      const websites: Website[] = publicWebsites;
+      const websites: Website[] = Object.values(publicWebsites);
       this.allTags.set(getTagsForWebsites(websites));
     } catch (error) {
       console.error('Error loading tags:', error);

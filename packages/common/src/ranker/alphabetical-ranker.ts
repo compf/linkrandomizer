@@ -17,11 +17,11 @@ export class AlphabeticalRanker implements ItemRanker {
     }
 
     rankWebsite(website: Website): number {
-        return alphabeticalScore(website.name);
+        return alphabeticalScore(website.schema[0] as string);
     }
 
     rankUrl(url: GeneratedURL): number {
-        return alphabeticalScore(url.website.name) * 1_000_000 + alphabeticalScore(url.url);
+        return alphabeticalScore(url.website.schema[0] as string) * 1_000_000 + alphabeticalScore(url.url);
     }
 }
 

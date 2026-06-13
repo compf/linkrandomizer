@@ -33,7 +33,6 @@ export const URLPartSchema=z.union([z.string(),z.object({variable:z.string(),pad
 
 export const WebsiteSchema=z.object({
     version:z.number().optional(),
-    name:z.string().describe("unique Name of the website schema"),
     schema:z.array(URLPartSchema).describe("Alternating between fixed string parts and variable parts. The first part must be fixed and start with http or https"),
     tags:z.array(z.string()).describe("Tags to categorize the website"),
     variables:z.array(z.union([RandomFromRangeSchema,RandomDateSchema,RandomFromSelectionSchema,RandomDateRangeSchema])),
