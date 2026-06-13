@@ -1,1 +1,25 @@
 @import '@angular/material/prebuilt-themes/deeppurple-amber.css';
+
+:root {
+  --app-surface: #fafafa;
+  --app-card-bg: #ffffff;
+  --app-border: #e0e0e0;
+  --app-text-secondary: #5f6368;
+  --app-sidebar-width: 320px;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Roboto, 'Helvetica Neue', sans-serif;
+  background: var(--app-surface);
+  color: rgba(0, 0, 0, 0.87);
+}
+
+* {
+  box-sizing: border-box;
+}

@@ -11,6 +11,9 @@ import { FrontendUrlHandler } from './frontend-handler/frontend-url-handler';
 import { FrontendWebsiteHandler } from './frontend-handler/frontend-website-handler';
 import { FrontendService } from './frontend-handler/frontend-service';
 import { RandomFactsComponent } from './components/random-facts/random-facts';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatIconModule } from '@angular/material/icon';
 
 if(window.isElectron){
   console.log("Running in electron");
@@ -42,11 +45,19 @@ if(window.isElectron){
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule, UrlGeneratorComponent, WebsiteAnalyzerComponent, RandomFactsComponent]
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatTabsModule,
+    MatToolbarModule,
+    MatIconModule,
+    UrlGeneratorComponent,
+    WebsiteAnalyzerComponent,
+    RandomFactsComponent,
+  ]
 })
 class App implements OnInit {
-  activeTab = 'generator';
-  frontendService=inject(FrontendService);
+  frontendService = inject(FrontendService);
 
   ngOnInit() {
     console.log('App initialized with IPC:', window.api);

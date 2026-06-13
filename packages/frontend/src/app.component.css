@@ -1,7 +1,47 @@
-.app-container { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; }
-h1 { text-align: center; color: #333; }
-.tabs { display: flex; border-bottom: 1px solid #ccc; margin-bottom: 20px; }
-.tab-button { padding: 10px 20px; border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; }
-.tab-button.active { border-bottom-color: #007bff; color: #007bff; }
-.tab-button:hover { background: #f5f5f5; }
-.tab-container { min-height: 500px; }
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--app-surface, #fafafa);
+}
+
+.app-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+}
+
+.app-logo {
+  margin-right: 12px;
+}
+
+.app-title {
+  font-size: 1.25rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.app-main {
+  flex: 1;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px 32px;
+  box-sizing: border-box;
+}
+
+.app-tabs {
+  margin-top: 8px;
+}
+
+.tab-icon {
+  margin-right: 8px;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.tab-panel {
+  padding: 24px 0 8px;
+}

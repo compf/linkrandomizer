@@ -5,6 +5,12 @@ import { MatDialog } from "@angular/material/dialog";
 import { MatSelectModule } from "@angular/material/select";
 import { MatIconModule } from "@angular/material/icon";
 import { MatTreeModule } from "@angular/material/tree";
+import { MatCardModule } from "@angular/material/card";
+import { MatExpansionModule } from "@angular/material/expansion";
+import { MatCheckboxModule } from "@angular/material/checkbox";
+import { MatButtonModule } from "@angular/material/button";
+import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatInputModule } from "@angular/material/input";
 import {
   Website,
   GroupedURl,
@@ -32,7 +38,19 @@ import { Component, inject, OnInit, signal } from '@angular/core';
   templateUrl: './url-generator.component.html',
   styleUrls: ['./url-generator.component.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule, MatTreeModule,MatIconModule,MatSelectModule]
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatTreeModule,
+    MatIconModule,
+    MatSelectModule,
+    MatCardModule,
+    MatExpansionModule,
+    MatCheckboxModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+  ]
 })
 export class UrlGeneratorComponent implements OnInit {
   allWebsites=signal<Website[]>([])
