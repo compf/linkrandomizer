@@ -33,6 +33,9 @@ import {
 } from "@linkrandomizer/common";
 import { ChatDialogComponent } from "../chat.component/chat.component";
 import { Component, inject, OnInit, signal } from '@angular/core';
+
+type NamedWebsite = { name: string; website: Website };
+
 @Component({
   selector: 'app-url-generator',
   templateUrl: './url-generator.component.html',
@@ -53,9 +56,10 @@ import { Component, inject, OnInit, signal } from '@angular/core';
   ]
 })
 export class UrlGeneratorComponent implements OnInit {
-  allWebsites=signal<Website[]>([])
-  allTags=signal<string[]>([])
+  allWebsites = signal<NamedWebsite[]>([]);
+  allTags = signal<string[]>([]);
   selectedTags: { [key: string]: boolean } = {};
+  selectedWebsites: Record<string, boolean> = {};
   urlCount = 1000;
   groupedUrls=signal<GroupedURl[]>([{
     groupKey:"",
@@ -120,15 +124,55 @@ export class UrlGeneratorComponent implements OnInit {
   async loadWebsites() {
     try {
       await loadExtractedUrls();
-      this.allWebsites.set(Object.values(publicWebsites));
+      const namedWebsites = Object.entries(publicWebsites).map(([name, website]) => ({
+        name,
+        website,
+      }));
+      this.allWebsites.set(namedWebsites);
+      for (const { name } of namedWebsites) {
+        this.selectedWebsites[name] = true;
+      }
     } catch (error) {
       console.error('Error loading websites:', error);
     }
   }
+
+  visibleWebsites(): NamedWebsite[] {
+    const selectedTagList = Object.keys(this.selectedTags).filter(tag => this.selectedTags[tag]);
+    if (selectedTagList.length === 0) {
+      return [];
+    }
+    return this.allWebsites().filter(({ website }) =>
+      selectedTagList.some(tag => website.tags.includes(tag)),
+    );
+  }
+
+  get selectedWebsiteCount(): number {
+    return this.visibleWebsites().filter(({ name }) => this.selectedWebsites[name]).length;
+  }
+
   async toggleTagFilter(tag: string, isChecked: boolean) {
     this.selectedTags[tag] = isChecked;
-    
-    await this.generateUrls();
+  }
+
+  async toggleWebsiteFilter(name: string, isChecked: boolean) {
+    this.selectedWebsites[name] = isChecked;
+  }
+
+  selectAllWebsites() {
+    for (const { name } of this.visibleWebsites()) {
+      this.selectedWebsites[name] = true;
+    }
+  }
+
+  clearAllWebsites() {
+    for (const { name } of this.visibleWebsites()) {
+      this.selectedWebsites[name] = false;
+    }
+  }
+
+  refreshUrls() {
+    void this.generateUrls();
   }
 
   async loadTags() {
@@ -140,36 +184,32 @@ export class UrlGeneratorComponent implements OnInit {
     }
   }
 
-  async filterWebsites() {
+  filterWebsites(): Website[] {
     const selectedTagList = Object.keys(this.selectedTags).filter(tag => this.selectedTags[tag]);
-    console.log("Filtering websites with selected tags:", selectedTagList);
-    if(selectedTagList.length === 0){
-      console.warn("No tags selected, returning empty website list");
-     return []
-    }
-    try {
-      const filteredWebsites=this.allWebsites().filter(w => selectedTagList.some(t => w.tags.includes(t)))
-      console.log("filtered websites:", filteredWebsites)
-      return filteredWebsites;
-    } catch (error) {
-      console.error('Error filtering websites:', error);
+    if (selectedTagList.length === 0) {
       return [];
     }
+
+    return this.allWebsites()
+      .filter(({ name, website }) =>
+        this.selectedWebsites[name] &&
+        selectedTagList.some(tag => website.tags.includes(tag)),
+      )
+      .map(({ website }) => website);
   }
 
   async generateUrls() {
     try{
     console.log("started generating URLs with count:", this.urlCount);
     const generated: GeneratedURL[] = [];
-    const  filteredWebsites=await this.filterWebsites();
-    if(filteredWebsites.length===0){
-        this.groupedUrls.set([{
-          groupKey:"",
-          groupValue:"No URLs generated",
-          children:[],
-          urls:[]
-        }])
-      console.warn("No websites match the selected tags, skipping URL generation");
+    const filteredWebsites = this.filterWebsites();
+    if (filteredWebsites.length === 0) {
+      this.groupedUrls.set([{
+        groupKey: "",
+        groupValue: "No URLs generated",
+        children: [],
+        urls: [],
+      }]);
       return;
     }
     this.ranker = this.buildRanker();
@@ -193,18 +233,16 @@ export class UrlGeneratorComponent implements OnInit {
   private grouper:UrlGrouper=new NoGrouping()
   private ranker: ItemRanker = createRanker("No ranking");
 
-  protected changeGrouper(name:string){
-  this.grouper=availableGroupers[name as keyof typeof availableGroupers]
-  this.generateUrls()
+  protected changeGrouper(name: string) {
+    this.grouper = availableGroupers[name as keyof typeof availableGroupers];
   }
 
   protected changeRanker(name: RankerName) {
     this.selectedRankerName = name;
-    this.generateUrls();
   }
 
   protected onRankingConfigChange() {
-    this.generateUrls();
+    // Ranking config is applied on the next refresh.
   }
 
   protected moveTagUp(index: number) {
@@ -214,7 +252,6 @@ export class UrlGeneratorComponent implements OnInit {
     const next = [...this.tagPriority];
     [next[index - 1], next[index]] = [next[index], next[index - 1]];
     this.tagPriority = next;
-    this.onRankingConfigChange();
   }
 
   protected moveTagDown(index: number) {
@@ -224,7 +261,6 @@ export class UrlGeneratorComponent implements OnInit {
     const next = [...this.tagPriority];
     [next[index + 1], next[index]] = [next[index], next[index + 1]];
     this.tagPriority = next;
-    this.onRankingConfigChange();
   }
 
   protected async generateAiRanker() {

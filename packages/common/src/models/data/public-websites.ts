@@ -216,9 +216,47 @@ export const publicWebsites: Record<string, Website> = {
         name: "randomFromRange",
         variableName: "nummer",
         min: 1,
-        maxExclusive: 200,
+        maxExclusive: 230,
       },
     ],
+    obtainMoreVariablesFunction: (variables: Record<string, unknown>) => {
+      const wperiod = variables.wperiod as number;
+      const nummer = variables.nummer as number;
+      const wPeriodYearMap:Record<number,number>={
+        1: 1949,
+        2: 1953,
+        3: 1957,
+        4: 1961,
+        5: 1965,
+        6: 1969,
+        7: 1972,
+        8: 1976,
+        9: 1980,
+        10:1983,
+        11:1987,
+        12:1990,
+        13:1994,
+        14:1998,
+        15:2002,
+        16:2005,
+        17:2009,
+        18:2013,
+        19:2017,
+        20:2021,
+        21:2025,
+      }
+      const numberProtocls=230
+      const startYear=wPeriodYearMap[wperiod]
+      const endYear=wPeriodYearMap[wperiod+1]
+      const yearWithFraction=startYear+nummer/numberProtocls*(endYear-startYear)
+      const monthFraction=yearWithFraction-Math.floor(yearWithFraction)
+      const month=Math.floor(monthFraction*12)
+      const year=Math.floor(yearWithFraction)
+      variables.year=year
+      variables.month=month
+      console.log("year:", year, "month:", month);
+    
+    },
   },
   "niedersachsen plenar protocols": {
     schema: [
@@ -577,7 +615,27 @@ export const publicWebsites: Record<string, Website> = {
         maxExclusive: 32,
       },
     ],  
-}
+},
+"weser kurier":{
+    schema: [
+        "weser----",
+        { variable: "year", padding: null },
+        "-",
+        { variable: "month", padding: 2 },
+        "-",
+        { variable: "day", padding: 2 },
+        "",
+    ],
+    downloadType: "screenshotInClipboard",
+    tags: ["newspaper", "german"],
+    variables: [
+      {
+        name: "randomDate",
+        minYear: 1946,
+        maxYearExclusive: 2026,
+      },
+    ],
+  },
 }
 
 const urlsToBeExtracted:(keyof typeof publicWebsites)[]=[

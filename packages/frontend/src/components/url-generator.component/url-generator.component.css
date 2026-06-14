@@ -1,13 +1,46 @@
 .generator-layout {
   display: grid;
   grid-template-columns: var(--app-sidebar-width) 1fr;
+  grid-template-rows: auto 1fr;
   gap: 24px;
   align-items: start;
+}
+
+.generator-toolbar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  background: var(--app-card-bg);
+}
+
+.generator-toolbar-text {
+  min-width: 0;
+}
+
+.generator-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+
+.generator-subtitle {
+  margin: 4px 0 0;
+  color: var(--app-text-secondary);
+  font-size: 0.875rem;
 }
 
 .generator-sidebar {
   position: sticky;
   top: 80px;
+}
+
+.generator-results {
+  min-width: 0;
 }
 
 .sidebar-card,
@@ -39,7 +72,8 @@
   vertical-align: middle;
 }
 
-.tag-list {
+.tag-list,
+.filter-list {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -48,8 +82,15 @@
   padding-right: 4px;
 }
 
-.tag-list mat-checkbox {
+.tag-list mat-checkbox,
+.filter-list mat-checkbox {
   display: block;
+}
+
+.list-actions {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
 }
 
 mat-form-field {
@@ -209,6 +250,11 @@ mat-icon {
 @media (max-width: 960px) {
   .generator-layout {
     grid-template-columns: 1fr;
+  }
+
+  .generator-toolbar {
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .generator-sidebar {

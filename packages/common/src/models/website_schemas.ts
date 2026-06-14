@@ -44,8 +44,12 @@ export const WebsiteSchema=z.object({
 
 
 openIn:z.enum(["firefox","chromium","playwrightBrowser"]).optional().nullable().describe("Whether the URL should be opened in the default browser or in a playwright controlled browser. The default browser is useful for websites that require login."),
-downloadType:z.enum(["downloadFromGeneratedURL","downloadFromURLInClipboard","screenshotInClipboard",])
-
+downloadType:z.enum(["downloadFromGeneratedURL","downloadFromURLInClipboard","screenshotInClipboard",]),
+obtainMoreVariablesFunction:z.function({
+    input: z.tuple([z.record(z.string(), z.unknown())]), // Argumente der Funktion
+    output: z.void(),                       // Rückgabetyp der Funktion
+  })
+  .optional().nullable().describe("Function to obtain more variables from the website. The function should add variables to the variables record."),
 },
 
 
@@ -154,6 +158,10 @@ export const generateRandomURL=(website:Website):GeneratedURL=>{
                 url+=asString
             }
         }
+    }
+    if(website.obtainMoreVariablesFunction){
+        website.obtainMoreVariablesFunction(variables)
+        console.log("variables:", variables);
     }
     return {
         url,

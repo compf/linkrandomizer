@@ -1,4 +1,15 @@
 <div class="generator-layout">
+  <header class="generator-toolbar">
+    <div class="generator-toolbar-text">
+      <h2 class="generator-title">URL Generator</h2>
+      <p class="generator-subtitle">Adjust filters, then regenerate to fetch a new random batch</p>
+    </div>
+    <button mat-raised-button color="primary" type="button" (click)="refreshUrls()">
+      <mat-icon>refresh</mat-icon>
+      Regenerate URLs
+    </button>
+  </header>
+
   <aside class="generator-sidebar">
     <mat-card appearance="outlined" class="sidebar-card">
       <mat-card-header>
@@ -25,6 +36,36 @@
                 [checked]="selectedTags[tag]"
                 (change)="toggleTagFilter(tag, $event.checked)">
                 {{ tag }}
+              </mat-checkbox>
+            </div>
+          </mat-expansion-panel>
+
+          <mat-expansion-panel expanded>
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <mat-icon class="panel-icon">language</mat-icon>
+                Websites
+              </mat-panel-title>
+              <mat-panel-description>
+                {{ selectedWebsiteCount }} / {{ visibleWebsites().length }} selected
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+
+            <div class="list-actions">
+              <button mat-button type="button" (click)="selectAllWebsites()">Select all</button>
+              <button mat-button type="button" (click)="clearAllWebsites()">Clear all</button>
+            </div>
+
+            <p class="ranker-help" *ngIf="visibleWebsites().length === 0">
+              Select at least one tag to choose websites.
+            </p>
+
+            <div class="filter-list">
+              <mat-checkbox
+                *ngFor="let entry of visibleWebsites()"
+                [checked]="selectedWebsites[entry.name]"
+                (change)="toggleWebsiteFilter(entry.name, $event.checked)">
+                {{ entry.name }}
               </mat-checkbox>
             </div>
           </mat-expansion-panel>
