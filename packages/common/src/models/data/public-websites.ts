@@ -21,7 +21,7 @@ async function loadExtractedUrlsFile(filename: string): Promise<ExtractedUrls> {
 
 export const publicWebsites: Record<string, Website> = {
   "nytimes time machine": {
-    tags: ["newspaper", "english", , "history"],
+    tags: ["newspaper", "english",  "history"],
     //https://timesmachine.nytimes.com/timesmachine/1992/11/05/issue.html
     schema: [
       "https://timesmachine.nytimes.com/timesmachine/",
@@ -425,7 +425,160 @@ export const publicWebsites: Record<string, Website> = {
       },
     ],
   },
-};
+  "thedailywtf": {
+    schema: ["https://thedailywtf.com/articles/random"],
+    downloadType: "downloadFromGeneratedURL",
+    tags: ["technology", "english"],
+    variables: [],
+  },
+//https://eap.bl.uk/archive-file/EAP1086-1-10-2-2
+"barbados_gazette": {
+    schema: [
+        "https://eap.bl.uk/archive-file/EAP1086-1-",
+        { variable: "volume", padding: null },
+        "-",
+        { variable: "month", padding: null },
+        "-",
+        { variable: "issue", padding: null },
+    ],
+    downloadType: "screenshotInClipboard",
+    tags: ["government", "newspaper", "english"],
+    variables: [
+      {
+        name: "randomFromRange",
+        variableName: "volume",
+        min: 1,
+        maxExclusive: 10,
+      },
+      {
+        name: "randomFromRange",
+        variableName: "month",
+        min: 1,
+        maxExclusive: 13,
+      },
+      {
+        name: "randomFromRange",
+        variableName: "issue",
+        min: 1,
+        maxExclusive: 9,
+      },
+    ]
+},
+//https://www.newspapers.com/search/results/?date=1850-02-03&page-number=1
+"newspapers_com": {
+    schema: [
+        "https://www.newspapers.com/search/results/?date=",
+        { variable: "year", padding: null },
+        "-",
+        { variable: "month", padding: 2 },
+        "-",
+        { variable: "day", padding: 2 },
+        "&page-number=",
+        { variable: "page", padding: null },
+    ],
+    downloadType: "screenshotInClipboard",
+    tags: ["newspaper", "english", "history"],
+    variables: [
+      {
+        name: "randomFromRange",
+        variableName: "year",
+        min: 1850,
+        maxExclusive: 1900,
+      },
+      {
+        name: "randomFromRange",
+        variableName: "month",
+        min: 1,
+        maxExclusive: 13,
+      },
+      {
+        name: "randomFromRange",
+        variableName: "day",
+        min: 1,
+        maxExclusive: 32,
+      },
+      {
+        name: "randomFromRange",
+        variableName: "page",
+        min: 1,
+        maxExclusive: 5,
+      },
+    ]
+},
+//https://www.govtrack.us/congress/bills/119/hr9237/text
+"govtrack_us": {
+    schema: [
+        "https://www.govtrack.us/congress/bills/",
+        { variable: "congress", padding: null },
+        "/",
+        { variable: "type", padding: null },
+        "/",
+        { variable: "bill", padding: null },
+        "/text",
+    ],
+    downloadType: "downloadFromGeneratedURL",
+    tags: ["legal", "english"],
+    variables: [
+      {
+        name: "randomFromRange",
+        variableName: "congress",
+        min: 109,
+        maxExclusive: 119,
+      },
+      {
+        name: "randomFromSelection",
+        variableName: "type",
+        values: ["hr", "s", "hres", "sres", "hjres", "sjres", "hconres", "sconres"],
+      },
+      {
+        name: "randomFromRange",
+        variableName: "bill",
+        min: 1,
+        maxExclusive: 9000,
+      },
+    ],
+},
+//https://www.govinfo.gov/content/pkg/CREC-2026-04-23/pdf/CREC-2026-04-23.pdf
+"govinfo_us": {
+    schema: [
+        "https://www.govinfo.gov/content/pkg/CREC-",
+        { variable: "year", padding: null },
+        "-",
+        { variable: "month", padding: 2 },
+        "-",
+        { variable: "day", padding: 2 },
+        "/pdf/CREC-",
+        { variable: "year", padding: null },
+        "-",
+        { variable: "month", padding: 2 },
+        "-",
+        { variable: "day", padding: 2 },
+        ".pdf",
+    ],
+    downloadType: "downloadFromGeneratedURL",
+    tags: ["legal", "english"],
+    variables: [
+      {
+        name: "randomFromRange",
+        variableName: "year",
+        min: 1994,
+        maxExclusive: 2026,
+      },
+      {
+        name: "randomFromRange",
+        variableName: "month",
+        min: 1,
+        maxExclusive: 13,
+      },
+      {
+        name: "randomFromRange",
+        variableName: "day",
+        min: 1,
+        maxExclusive: 32,
+      },
+    ],  
+}
+}
 
 const urlsToBeExtracted:(keyof typeof publicWebsites)[]=[
   "trump_legal_cases",
