@@ -1,4 +1,4 @@
-import type { Website } from "../website_schemas.js";
+import type { RandomFromSelection, Website } from "../website_schemas.js";
 
 type ExtractedUrls = {
   name: string;
@@ -646,23 +646,21 @@ const urlsToBeExtracted:(keyof typeof publicWebsites)[]=[
 
 
 let extractedUrlsLoaded = false;
-let extractedUrlsLoadPromise: Promise<void> | undefined;
+export let extractedUrlsLoadPromise: Promise<void> | undefined;
 
 export async function loadExtractedUrls(): Promise<void> {
-  console.log("loading extracted urls");
-  if (extractedUrlsLoaded) {
-    return;
-  }
-  if (!extractedUrlsLoadPromise) {
-    extractedUrlsLoadPromise = Promise.all([
-      ...urlsToBeExtracted.map(url => loadExtractedUrlsFile(url+".json")),
-    ]).then((extractedUrls) => {
-      console.log("extractedUrls:", extractedUrls);
-      extractedUrlsLoaded = true;
-    }).catch(error => {
-      console.error("Error loading extracted urls:", error);
-      extractedUrlsLoaded = false;
+    return await new Promise(async (resolve, reject) => {
+        try {
+            const results=await Promise.all(urlsToBeExtracted.map(url => {return {url:url, promise:loadExtractedUrlsFile(url+".json")}}));
+            for(const {url,promise} of results){
+                const extractedUrls=await promise;
+                console.log("extractedUrls:", url, extractedUrls.urlsToReturn);
+                (publicWebsites[url].variables[0] as RandomFromSelection).values=extractedUrls.urlsToReturn as string[];
+            }
+            resolve();
+        } catch (error) {
+            reject(error);
+        }
     });
-  }
-  return extractedUrlsLoadPromise;
 }
+

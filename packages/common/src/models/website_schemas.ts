@@ -148,6 +148,9 @@ export const generateRandomURL=(website:Website):GeneratedURL=>{
         else{
 
             let v=variables[schema.variable]
+            if(!v){
+                console.log("Variable "+schema.variable+" not found in variables:"+JSON.stringify(variables)+JSON.stringify(website))
+            }
                const asString=v+""
 
             if(schema.padding){
