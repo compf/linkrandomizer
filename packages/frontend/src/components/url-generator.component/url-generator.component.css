@@ -4,6 +4,7 @@
   grid-template-rows: auto 1fr;
   gap: 24px;
   align-items: start;
+  padding-right: 72px;
 }
 
 .generator-toolbar {
@@ -37,6 +38,14 @@
 .generator-sidebar {
   position: sticky;
   top: 80px;
+  max-height: calc(100vh - 120px);
+  min-height: 0;
+}
+
+.sidebar-scroll {
+  max-height: inherit;
+  overflow-y: auto;
+  padding-right: 2px;
 }
 
 .generator-results {
@@ -50,6 +59,104 @@
 
 .sidebar-card mat-card-content {
   padding-top: 8px;
+}
+
+.ranker-dock {
+  position: fixed;
+  z-index: 200;
+  right: 16px;
+  bottom: 16px;
+  box-sizing: border-box;
+}
+
+.ranker-dock--collapsed {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.ranker-dock-collapsed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 8px;
+  border: 1px solid var(--app-border);
+  border-radius: 28px;
+  background: var(--app-card-bg);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14);
+}
+
+.ranker-dock-chip {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  max-height: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  color: var(--app-text-secondary);
+  letter-spacing: 0.02em;
+}
+
+.ranker-dock--expanded {
+  top: 88px;
+  bottom: 16px;
+  width: min(300px, calc(100vw - 32px));
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  background: var(--app-card-bg);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.16);
+}
+
+.ranker-dock-expanded {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  height: 100%;
+}
+
+.ranker-dock-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.ranker-dock-heading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ranker-dock-title {
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.ranker-select {
+  width: 100%;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.ranker-dock-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.ranker-dock-regen {
+  flex-shrink: 0;
+  width: 100%;
 }
 
 .settings-accordion {
@@ -104,6 +211,12 @@ mat-form-field {
   margin-top: 8px;
 }
 
+.ranker-config.inline-config {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
 .ranker-help {
   margin: 0;
   color: var(--app-text-secondary);
@@ -125,6 +238,11 @@ mat-form-field {
   font-size: 0.75rem;
   overflow-x: auto;
   white-space: pre-wrap;
+}
+
+.tag-priority-list {
+  max-height: 140px;
+  overflow-y: auto;
 }
 
 .tag-priority-row {
@@ -291,6 +409,8 @@ mat-icon {
 @media (max-width: 960px) {
   .generator-layout {
     grid-template-columns: 1fr;
+    padding-right: 0;
+    padding-bottom: 88px;
   }
 
   .generator-toolbar {
@@ -300,6 +420,20 @@ mat-icon {
 
   .generator-sidebar {
     position: static;
+    max-height: none;
+  }
+
+  .sidebar-scroll {
+    overflow: visible;
+  }
+
+  .ranker-dock--expanded {
+    top: auto;
+    bottom: 12px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+    max-height: min(55vh, 420px);
   }
 
   .website-tile-grid {

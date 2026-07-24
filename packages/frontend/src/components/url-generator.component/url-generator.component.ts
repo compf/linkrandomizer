@@ -63,6 +63,7 @@ export class UrlGeneratorComponent implements OnInit {
 
   protected rankerNames = rankerNames;
   selectedRankerName: RankerName = "No ranking";
+  rankerDockExpanded = false;
   targetYear = defaultDateProximityConfig().targetYear;
   targetMonth = defaultDateProximityConfig().targetMonth ?? 1;
   tagPriority: string[] = [];

@@ -11,166 +11,213 @@
   </header>
 
   <aside class="generator-sidebar">
-    <mat-card appearance="outlined" class="sidebar-card">
-      <mat-card-header>
-        <mat-card-title>Filters &amp; settings</mat-card-title>
-        <mat-card-subtitle>Configure tags, websites, and ranking</mat-card-subtitle>
-      </mat-card-header>
+    <div class="sidebar-scroll">
+      <mat-card appearance="outlined" class="sidebar-card">
+        <mat-card-header>
+          <mat-card-title>Filters &amp; settings</mat-card-title>
+          <mat-card-subtitle>Configure tags, websites, and batch size</mat-card-subtitle>
+        </mat-card-header>
 
-      <mat-card-content>
-        <mat-accordion class="settings-accordion" multi>
-          <mat-expansion-panel expanded>
-            <mat-expansion-panel-header>
-              <mat-panel-title>
-                <mat-icon class="panel-icon">label</mat-icon>
-                Tags
-              </mat-panel-title>
-              <mat-panel-description>
-                {{ allTags().length }} available
-              </mat-panel-description>
-            </mat-expansion-panel-header>
+        <mat-card-content>
+          <mat-accordion class="settings-accordion" multi>
+            <mat-expansion-panel expanded>
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <mat-icon class="panel-icon">label</mat-icon>
+                  Tags
+                </mat-panel-title>
+                <mat-panel-description>
+                  {{ allTags().length }} available
+                </mat-panel-description>
+              </mat-expansion-panel-header>
 
-            <div class="tag-list">
-              <mat-checkbox
-                *ngFor="let tag of allTags()"
-                [checked]="selectedTags[tag]"
-                (change)="toggleTagFilter(tag, $event.checked)">
-                {{ tag }}
-              </mat-checkbox>
-            </div>
-          </mat-expansion-panel>
+              <div class="tag-list">
+                <mat-checkbox
+                  *ngFor="let tag of allTags()"
+                  [checked]="selectedTags[tag]"
+                  (change)="toggleTagFilter(tag, $event.checked)">
+                  {{ tag }}
+                </mat-checkbox>
+              </div>
+            </mat-expansion-panel>
 
-          <mat-expansion-panel expanded>
-            <mat-expansion-panel-header>
-              <mat-panel-title>
-                <mat-icon class="panel-icon">language</mat-icon>
-                Websites
-              </mat-panel-title>
-              <mat-panel-description>
-                {{ selectedWebsiteCount }} / {{ visibleWebsites().length }} selected
-              </mat-panel-description>
-            </mat-expansion-panel-header>
+            <mat-expansion-panel expanded>
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <mat-icon class="panel-icon">language</mat-icon>
+                  Websites
+                </mat-panel-title>
+                <mat-panel-description>
+                  {{ selectedWebsiteCount }} / {{ visibleWebsites().length }} selected
+                </mat-panel-description>
+              </mat-expansion-panel-header>
 
-            <div class="list-actions">
-              <button mat-button type="button" (click)="selectAllWebsites()">Select all</button>
-              <button mat-button type="button" (click)="clearAllWebsites()">Clear all</button>
-            </div>
+              <div class="list-actions">
+                <button mat-button type="button" (click)="selectAllWebsites()">Select all</button>
+                <button mat-button type="button" (click)="clearAllWebsites()">Clear all</button>
+              </div>
 
-            <p class="ranker-help" *ngIf="visibleWebsites().length === 0">
-              Select at least one tag to choose websites.
-            </p>
+              <p class="ranker-help" *ngIf="visibleWebsites().length === 0">
+                Select at least one tag to choose websites.
+              </p>
 
-            <div class="filter-list">
-              <mat-checkbox
-                *ngFor="let entry of visibleWebsites()"
-                [checked]="selectedWebsites[entry.name]"
-                (change)="toggleWebsiteFilter(entry.name, $event.checked)">
-                {{ entry.name }}
-              </mat-checkbox>
-            </div>
-          </mat-expansion-panel>
+              <div class="filter-list">
+                <mat-checkbox
+                  *ngFor="let entry of visibleWebsites()"
+                  [checked]="selectedWebsites[entry.name]"
+                  (change)="toggleWebsiteFilter(entry.name, $event.checked)">
+                  {{ entry.name }}
+                </mat-checkbox>
+              </div>
+            </mat-expansion-panel>
 
-          <mat-expansion-panel expanded>
-            <mat-expansion-panel-header>
-              <mat-panel-title>
-                <mat-icon class="panel-icon">numbers</mat-icon>
-                Batch size
-              </mat-panel-title>
-            </mat-expansion-panel-header>
+            <mat-expansion-panel expanded>
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <mat-icon class="panel-icon">numbers</mat-icon>
+                  Batch size
+                </mat-panel-title>
+              </mat-expansion-panel-header>
 
-            <mat-form-field appearance="outline" subscriptSizing="dynamic">
-              <mat-label>URLs per website</mat-label>
-              <input matInput type="number" min="1" [(ngModel)]="urlCount" />
-            </mat-form-field>
-            <p class="ranker-help">Each selected website gets its own tile with this many URLs.</p>
-          </mat-expansion-panel>
-
-          <mat-expansion-panel expanded>
-            <mat-expansion-panel-header>
-              <mat-panel-title>
-                <mat-icon class="panel-icon">sort</mat-icon>
-                Ranking
-              </mat-panel-title>
-            </mat-expansion-panel-header>
-
-            <mat-form-field appearance="outline" subscriptSizing="dynamic">
-              <mat-label>Rank URLs and websites by</mat-label>
-              <mat-select [value]="selectedRankerName" (selectionChange)="changeRanker($event.value)">
-                <mat-option *ngFor="let rankerName of rankerNames" [value]="rankerName">
-                  {{ rankerName }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
-
-            <div class="ranker-config" *ngIf="selectedRankerName === 'Date proximity'">
               <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                <mat-label>Target year</mat-label>
-                <input matInput type="number" [(ngModel)]="targetYear" (change)="onRankingConfigChange()" />
+                <mat-label>URLs per website</mat-label>
+                <input matInput type="number" min="1" [(ngModel)]="urlCount" />
               </mat-form-field>
-              <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                <mat-label>Target month</mat-label>
-                <input matInput type="number" min="1" max="12" [(ngModel)]="targetMonth" (change)="onRankingConfigChange()" />
-              </mat-form-field>
-              <p class="ranker-help">URLs with dates closer to this year/month appear first.</p>
-            </div>
+              <p class="ranker-help">Each selected website gets its own tile with this many URLs.</p>
+            </mat-expansion-panel>
+          </mat-accordion>
+        </mat-card-content>
 
-            <div class="ranker-config" *ngIf="selectedRankerName === 'Daily random'">
-              <p class="ranker-help">Uses a deterministic random order per website, seeded by today's day and month.</p>
-            </div>
+        <mat-card-actions align="end">
+          <button mat-raised-button color="primary" type="button" (click)="randomUrl()">
+            <mat-icon>casino</mat-icon>
+            I'm feeling lucky
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </aside>
 
-            <div class="ranker-config" *ngIf="selectedRankerName === 'By tag priority'">
-              <p class="ranker-help">Higher tags in this list are preferred when ordering website tiles and sorting URLs.</p>
-              <div class="tag-priority-row" *ngFor="let tag of tagPriority; let i = index">
-                <span>{{ i + 1 }}. {{ tag }}</span>
-                <div class="tag-priority-actions">
-                  <button type="button" mat-icon-button (click)="moveTagUp(i)" [disabled]="i === 0" aria-label="Move up">
-                    <mat-icon>arrow_upward</mat-icon>
-                  </button>
-                  <button type="button" mat-icon-button (click)="moveTagDown(i)" [disabled]="i === tagPriority.length - 1" aria-label="Move down">
-                    <mat-icon>arrow_downward</mat-icon>
-                  </button>
-                </div>
+  <aside
+    class="ranker-dock"
+    [class.ranker-dock--expanded]="rankerDockExpanded"
+    [class.ranker-dock--collapsed]="!rankerDockExpanded">
+    <div class="ranker-dock-collapsed" *ngIf="!rankerDockExpanded">
+      <button
+        mat-mini-fab
+        color="primary"
+        type="button"
+        class="ranker-dock-expand"
+        (click)="rankerDockExpanded = true"
+        aria-label="Expand ranking panel"
+        title="Expand ranking">
+        <mat-icon>sort</mat-icon>
+      </button>
+      <button
+        mat-mini-fab
+        color="accent"
+        type="button"
+        (click)="refreshUrls()"
+        aria-label="Regenerate URLs"
+        title="Regenerate URLs">
+        <mat-icon>refresh</mat-icon>
+      </button>
+      <span class="ranker-dock-chip" [title]="selectedRankerName">{{ selectedRankerName }}</span>
+    </div>
+
+    <div class="ranker-dock-expanded" *ngIf="rankerDockExpanded">
+      <div class="ranker-dock-header">
+        <div class="ranker-dock-heading">
+          <mat-icon class="panel-icon">sort</mat-icon>
+          <span class="ranker-dock-title">Ranking</span>
+        </div>
+        <button
+          mat-icon-button
+          type="button"
+          (click)="rankerDockExpanded = false"
+          aria-label="Collapse ranking panel"
+          title="Collapse">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="ranker-select">
+        <mat-label>Rank by</mat-label>
+        <mat-select [value]="selectedRankerName" (selectionChange)="changeRanker($event.value)">
+          <mat-option *ngFor="let rankerName of rankerNames" [value]="rankerName">
+            {{ rankerName }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <div class="ranker-dock-body" *ngIf="selectedRankerName !== 'No ranking'">
+        <div class="ranker-config" *ngIf="selectedRankerName === 'Date proximity'">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-label>Target year</mat-label>
+            <input matInput type="number" [(ngModel)]="targetYear" (change)="onRankingConfigChange()" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-label>Target month</mat-label>
+            <input matInput type="number" min="1" max="12" [(ngModel)]="targetMonth" (change)="onRankingConfigChange()" />
+          </mat-form-field>
+          <p class="ranker-help">URLs with dates closer to this year/month appear first.</p>
+        </div>
+
+        <div class="ranker-config" *ngIf="selectedRankerName === 'Daily random'">
+          <p class="ranker-help">Uses a deterministic random order per website, seeded by today's day and month.</p>
+        </div>
+
+        <div class="ranker-config" *ngIf="selectedRankerName === 'By tag priority'">
+          <p class="ranker-help">Higher tags in this list are preferred when ordering website tiles and sorting URLs.</p>
+          <div class="tag-priority-list">
+            <div class="tag-priority-row" *ngFor="let tag of tagPriority; let i = index">
+              <span>{{ i + 1 }}. {{ tag }}</span>
+              <div class="tag-priority-actions">
+                <button type="button" mat-icon-button (click)="moveTagUp(i)" [disabled]="i === 0" aria-label="Move up">
+                  <mat-icon>arrow_upward</mat-icon>
+                </button>
+                <button type="button" mat-icon-button (click)="moveTagDown(i)" [disabled]="i === tagPriority.length - 1" aria-label="Move down">
+                  <mat-icon>arrow_downward</mat-icon>
+                </button>
               </div>
             </div>
+          </div>
+        </div>
 
-            <div class="ranker-config" *ngIf="selectedRankerName === 'AI custom'">
-              <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                <mat-label>What should be ranked first?</mat-label>
-                <textarea
-                  matInput
-                  rows="4"
-                  [(ngModel)]="aiPreferences"
-                  placeholder="Example: Prefer German newspapers from the 1930s"></textarea>
-              </mat-form-field>
-              <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                <mat-label>AI ranking target</mat-label>
-                <mat-select [(ngModel)]="aiRankTarget">
-                  <mat-option value="url">URLs only</mat-option>
-                  <mat-option value="website">Websites only</mat-option>
-                  <mat-option value="both">Websites and URLs</mat-option>
-                </mat-select>
-              </mat-form-field>
-              <button type="button" mat-stroked-button (click)="generateAiRanker()" [disabled]="aiRankLoading">
-                {{ aiRankLoading ? 'Generating ranker...' : 'Generate AI ranker' }}
-              </button>
-              <p class="ranker-error" *ngIf="aiRankError">{{ aiRankError }}</p>
-              <pre class="ranker-script" *ngIf="aiRankScript">{{ aiRankScript }}</pre>
-            </div>
+        <div class="ranker-config" *ngIf="selectedRankerName === 'AI custom'">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-label>What should be ranked first?</mat-label>
+            <textarea
+              matInput
+              rows="2"
+              [(ngModel)]="aiPreferences"
+              placeholder="Example: Prefer German newspapers from the 1930s"></textarea>
+          </mat-form-field>
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-label>AI ranking target</mat-label>
+            <mat-select [(ngModel)]="aiRankTarget">
+              <mat-option value="url">URLs only</mat-option>
+              <mat-option value="website">Websites only</mat-option>
+              <mat-option value="both">Websites and URLs</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <button type="button" mat-stroked-button (click)="generateAiRanker()" [disabled]="aiRankLoading">
+            {{ aiRankLoading ? 'Generating ranker...' : 'Generate AI ranker' }}
+          </button>
+          <p class="ranker-error" *ngIf="aiRankError">{{ aiRankError }}</p>
+          <pre class="ranker-script" *ngIf="aiRankScript">{{ aiRankScript }}</pre>
+        </div>
 
-            <div class="ranker-config" *ngIf="selectedRankerName === 'Alphabetical'">
-              <p class="ranker-help">Sorts websites and URLs alphabetically by name and URL.</p>
-            </div>
-          </mat-expansion-panel>
-        </mat-accordion>
-      </mat-card-content>
+        <div class="ranker-config" *ngIf="selectedRankerName === 'Alphabetical'">
+          <p class="ranker-help">Sorts websites and URLs alphabetically by name and URL.</p>
+        </div>
+      </div>
 
-      <mat-card-actions align="end">
-        <button mat-raised-button color="primary" (click)="randomUrl()">
-          <mat-icon>casino</mat-icon>
-          I'm feeling lucky
-        </button>
-      </mat-card-actions>
-    </mat-card>
+      <button mat-raised-button color="primary" type="button" class="ranker-dock-regen" (click)="refreshUrls()">
+        <mat-icon>refresh</mat-icon>
+        Regenerate
+      </button>
+    </div>
   </aside>
 
   <section class="generator-results">
