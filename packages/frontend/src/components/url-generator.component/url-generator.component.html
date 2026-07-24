@@ -2,7 +2,7 @@
   <header class="generator-toolbar">
     <div class="generator-toolbar-text">
       <h2 class="generator-title">URL Generator</h2>
-      <p class="generator-subtitle">Adjust filters, then regenerate to fetch a new random batch</p>
+      <p class="generator-subtitle">Adjust filters, then regenerate to fetch a new random batch per website</p>
     </div>
     <button mat-raised-button color="primary" type="button" (click)="refreshUrls()">
       <mat-icon>refresh</mat-icon>
@@ -14,7 +14,7 @@
     <mat-card appearance="outlined" class="sidebar-card">
       <mat-card-header>
         <mat-card-title>Filters &amp; settings</mat-card-title>
-        <mat-card-subtitle>Configure tags, grouping, and ranking</mat-card-subtitle>
+        <mat-card-subtitle>Configure tags, websites, and ranking</mat-card-subtitle>
       </mat-card-header>
 
       <mat-card-content>
@@ -73,19 +73,16 @@
           <mat-expansion-panel expanded>
             <mat-expansion-panel-header>
               <mat-panel-title>
-                <mat-icon class="panel-icon">folder</mat-icon>
-                Grouping
+                <mat-icon class="panel-icon">numbers</mat-icon>
+                Batch size
               </mat-panel-title>
             </mat-expansion-panel-header>
 
             <mat-form-field appearance="outline" subscriptSizing="dynamic">
-              <mat-label>Group URLs by</mat-label>
-              <mat-select (selectionChange)="changeGrouper($event.value)">
-                <mat-option *ngFor="let grouperName of grouperNames" [value]="grouperName">
-                  {{ grouperName }}
-                </mat-option>
-              </mat-select>
+              <mat-label>URLs per website</mat-label>
+              <input matInput type="number" min="1" [(ngModel)]="urlCount" />
             </mat-form-field>
+            <p class="ranker-help">Each selected website gets its own tile with this many URLs.</p>
           </mat-expansion-panel>
 
           <mat-expansion-panel expanded>
@@ -122,7 +119,7 @@
             </div>
 
             <div class="ranker-config" *ngIf="selectedRankerName === 'By tag priority'">
-              <p class="ranker-help">Higher tags in this list are preferred when picking websites and sorting URLs.</p>
+              <p class="ranker-help">Higher tags in this list are preferred when ordering website tiles and sorting URLs.</p>
               <div class="tag-priority-row" *ngFor="let tag of tagPriority; let i = index">
                 <span>{{ i + 1 }}. {{ tag }}</span>
                 <div class="tag-priority-actions">
@@ -180,42 +177,41 @@
     <mat-card appearance="outlined" class="results-card">
       <mat-card-header>
         <mat-card-title>Generated URLs</mat-card-title>
-        <mat-card-subtitle>Browse grouped links or open one at random</mat-card-subtitle>
+        <mat-card-subtitle>
+          {{ websiteTiles().length }} website tile{{ websiteTiles().length === 1 ? '' : 's' }}
+          · {{ urlCount }} URLs each
+        </mat-card-subtitle>
       </mat-card-header>
 
       <mat-card-content>
-        <mat-tree
-          class="group-tree"
-          [treeControl]="treeControl"
-          [childrenAccessor]="childrenAccessor"
-          [dataSource]="groupedUrls()">
-          <mat-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding>
-            <button mat-icon-button matTreeNodeToggle [attr.aria-label]="'toggle ' + node.groupValue">
-              <mat-icon>{{ treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right' }}</mat-icon>
-            </button>
-            <div class="group-node-content">
-              <div class="group-heading">
-                <span class="group-value">{{ node.groupValue }}</span>
-                <span class="group-meta" *ngIf="node.groupKey">{{ node.groupKey }}</span>
-              </div>
-              <div class="group-stats">
-                {{ getTotalUrlCount(node) }} URLs
-                <span *ngIf="node.children?.length">• {{ node.children.length }} groups</span>
-              </div>
-            </div>
-          </mat-tree-node>
+        <p class="empty-state" *ngIf="websiteTiles().length === 0">
+          Select at least one website and regenerate to see tiles here.
+        </p>
 
-          <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
-            <div class="leaf-node">
-              <button class="url-action" (click)="openUrl(getNodeLabel(node))">
-                {{ getNodeLabel(node) }}
-              </button>
-              <button class="chat-action" (click)="openChatDialog(node)" mat-icon-button aria-label="Open chat">
-                <mat-icon>chat</mat-icon>
-              </button>
+        <div
+          class="website-tile-grid"
+          *ngIf="websiteTiles().length > 0"
+          [style.--tile-columns]="tileColumnCount">
+          <article class="website-tile" *ngFor="let tile of websiteTiles()">
+            <header class="website-tile-header">
+              <h3 class="website-tile-title">{{ tile.name }}</h3>
+              <span class="website-tile-count">{{ tile.urls.length }} URLs</span>
+            </header>
+            <div class="website-tile-tags" *ngIf="tile.website.tags.length">
+              <span class="website-tile-tag" *ngFor="let tag of tile.website.tags">{{ tag }}</span>
             </div>
-          </mat-tree-node>
-        </mat-tree>
+            <ul class="website-tile-urls">
+              <li class="website-tile-url" *ngFor="let generated of tile.urls">
+                <button class="url-action" type="button" (click)="openUrl(generated.url)" [title]="generated.url">
+                  {{ displayLabel(generated) }}
+                </button>
+                <button class="chat-action" type="button" (click)="openChatDialog(generated)" mat-icon-button aria-label="Open chat">
+                  <mat-icon>chat</mat-icon>
+                </button>
+              </li>
+            </ul>
+          </article>
+        </div>
       </mat-card-content>
     </mat-card>
   </section>

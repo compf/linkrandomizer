@@ -520,8 +520,8 @@ export const publicWebsites: Record<string, Website> = {
       {
         name: "randomFromRange",
         variableName: "year",
-        min: 1850,
-        maxExclusive: 1900,
+        min: 1780,
+        maxExclusive: 1990,
       },
       {
         name: "randomFromRange",

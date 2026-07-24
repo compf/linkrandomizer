@@ -1,10 +1,8 @@
-import { NestedTreeControl } from "@angular/cdk/tree";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSelectModule } from "@angular/material/select";
 import { MatIconModule } from "@angular/material/icon";
-import { MatTreeModule } from "@angular/material/tree";
 import { MatCardModule } from "@angular/material/card";
 import { MatExpansionModule } from "@angular/material/expansion";
 import { MatCheckboxModule } from "@angular/material/checkbox";
@@ -13,21 +11,16 @@ import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import {
   Website,
-  GroupedURl,
   GeneratedURL,
   generateRandomURL,
-  UrlGrouper,
-  NoGrouping,
   publicWebsites,
   loadExtractedUrls,
-  availableGroupers,
   getTagsForWebsites,
   ItemRanker,
   RankerName,
   createRanker,
   rankerNames,
-  pickWebsiteByRank,
-  sortGroupedUrls,
+  sortUrls,
   defaultDateProximityConfig,
   defaultTagRankerConfig,
 } from "@linkrandomizer/common";
@@ -35,6 +28,12 @@ import { ChatDialogComponent } from "../chat.component/chat.component";
 import { Component, inject, OnInit, signal } from '@angular/core';
 
 type NamedWebsite = { name: string; website: Website };
+
+export type WebsiteTile = {
+  name: string;
+  website: Website;
+  urls: GeneratedURL[];
+};
 
 @Component({
   selector: 'app-url-generator',
@@ -44,7 +43,6 @@ type NamedWebsite = { name: string; website: Website };
   imports: [
     CommonModule,
     FormsModule,
-    MatTreeModule,
     MatIconModule,
     MatSelectModule,
     MatCardModule,
@@ -61,12 +59,7 @@ export class UrlGeneratorComponent implements OnInit {
   selectedTags: { [key: string]: boolean } = {};
   selectedWebsites: Record<string, boolean> = {};
   urlCount = 1000;
-  groupedUrls=signal<GroupedURl[]>([{
-    groupKey:"",
-    groupValue:"All URLs",
-    children:[],
-    urls:[]
-  }]);
+  websiteTiles = signal<WebsiteTile[]>([]);
 
   protected rankerNames = rankerNames;
   selectedRankerName: RankerName = "No ranking";
@@ -79,46 +72,31 @@ export class UrlGeneratorComponent implements OnInit {
   aiRankLoading = false;
   aiRankError = "";
 
-  hasChild = (_: number, node: GroupedURl) => {
-    
-    return !!node.children && node.children.length > 0 || !!node.urls && node.urls.length > 0;};
+  private dialog = inject(MatDialog);
+  private ranker: ItemRanker = createRanker("No ranking");
 
-  childrenAccessor = (node: GroupedURl | GeneratedURL) => {
-    const subNodes=(node as GroupedURl)?.children ?? []
-    const urls=(node as GroupedURl)?.urls ?? []
-    return [...subNodes, ...urls];
-  }
-  treeControl = new NestedTreeControl<GroupedURl|GeneratedURL>(node => this.childrenAccessor(node));
-
-  getNodeLabel(node: GroupedURl | GeneratedURL): string {
-    if ('groupKey' in node) {
-      return node.groupValue;
-    } else if ('url' in node) {
-      return node.url;
+  get tileColumnCount(): number {
+    const count = this.websiteTiles().length;
+    if (count <= 0) {
+      return 1;
     }
-    console.warn("Unknown node type:", node);
-    return '';
+    return Math.min(count, 4);
   }
 
-  getTotalUrlCount(node: GroupedURl): number {
-    const directUrls = node.urls?.length ?? 0;
-    const nestedUrls = node.children?.reduce((sum, child) => sum + this.getTotalUrlCount(child), 0) ?? 0;
-    return directUrls + nestedUrls;
+  get selectedWebsiteCount(): number {
+    return this.visibleWebsites().filter(({ name }) => this.selectedWebsites[name]).length;
   }
 
   async ngOnInit() {
-     await this.loadWebsites();
+    await this.loadWebsites();
+    await this.loadTags();
 
-     await this.loadTags();
-
-    for(const tag of this.allTags()){
-      this.selectedTags[tag]=true;
+    for (const tag of this.allTags()) {
+      this.selectedTags[tag] = true;
     }
     this.tagPriority = [...this.allTags()];
     this.ranker = this.buildRanker();
     await this.generateUrls();
-    
-   
   }
 
   async loadWebsites() {
@@ -145,10 +123,6 @@ export class UrlGeneratorComponent implements OnInit {
     return this.allWebsites().filter(({ website }) =>
       selectedTagList.some(tag => website.tags.includes(tag)),
     );
-  }
-
-  get selectedWebsiteCount(): number {
-    return this.visibleWebsites().filter(({ name }) => this.selectedWebsites[name]).length;
   }
 
   async toggleTagFilter(tag: string, isChecked: boolean) {
@@ -184,57 +158,52 @@ export class UrlGeneratorComponent implements OnInit {
     }
   }
 
-  filterWebsites(): Website[] {
+  filterNamedWebsites(): NamedWebsite[] {
     const selectedTagList = Object.keys(this.selectedTags).filter(tag => this.selectedTags[tag]);
     if (selectedTagList.length === 0) {
       return [];
     }
 
-    return this.allWebsites()
-      .filter(({ name, website }) =>
-        this.selectedWebsites[name] &&
-        selectedTagList.some(tag => website.tags.includes(tag)),
-      )
-      .map(({ website }) => website);
+    return this.allWebsites().filter(({ name, website }) =>
+      this.selectedWebsites[name] &&
+      selectedTagList.some(tag => website.tags.includes(tag)),
+    );
   }
 
   async generateUrls() {
-    try{
-    console.log("started generating URLs with count:", this.urlCount);
-    const generated: GeneratedURL[] = [];
-    const filteredWebsites = this.filterWebsites();
-    if (filteredWebsites.length === 0) {
-      this.groupedUrls.set([{
-        groupKey: "",
-        groupValue: "No URLs generated",
-        children: [],
-        urls: [],
-      }]);
-      return;
-    }
-    this.ranker = this.buildRanker();
-    for(let i=0;i<this.urlCount;i++){
-      const website = pickWebsiteByRank(filteredWebsites, this.ranker);
-      const url=generateRandomURL(website);
-      generated.push(url);
-    }
-    const grouper=this.grouper;
-    const grouped=grouper.group(generated);
-    const rankedGrouped = sortGroupedUrls(grouped, this.ranker);
-    console.log("Generated URLs grouped:", rankedGrouped);
-    this.groupedUrls.set([rankedGrouped]);
-  }  catch(error){
-    console.error("Error generating URLs:", error);
-  }
-  }
+    try {
+      console.log("started generating URLs with count per website:", this.urlCount);
+      const filteredWebsites = this.filterNamedWebsites();
+      if (filteredWebsites.length === 0) {
+        this.websiteTiles.set([]);
+        return;
+      }
 
-  private dialog=inject(MatDialog)
-  protected grouperNames=Object.keys(availableGroupers)
-  private grouper:UrlGrouper=new NoGrouping()
-  private ranker: ItemRanker = createRanker("No ranking");
+      this.ranker = this.buildRanker();
+      const tiles: WebsiteTile[] = filteredWebsites.map(({ name, website }) => {
+        const urls: GeneratedURL[] = [];
+        for (let i = 0; i < this.urlCount; i++) {
+          urls.push(generateRandomURL(website));
+        }
+        return {
+          name,
+          website,
+          urls: sortUrls(urls, this.ranker),
+        };
+      });
 
-  protected changeGrouper(name: string) {
-    this.grouper = availableGroupers[name as keyof typeof availableGroupers];
+      tiles.sort((left, right) => {
+        if (this.ranker.rankWebsite) {
+          return this.ranker.rankWebsite(right.website) - this.ranker.rankWebsite(left.website);
+        }
+        return left.name.localeCompare(right.name);
+      });
+
+      console.log("Generated website tiles:", tiles.length);
+      this.websiteTiles.set(tiles);
+    } catch (error) {
+      console.error("Error generating URLs:", error);
+    }
   }
 
   protected changeRanker(name: RankerName) {
@@ -298,11 +267,31 @@ export class UrlGeneratorComponent implements OnInit {
       },
     });
   }
-  
+
+  displayLabel(generated: GeneratedURL): string {
+    const entries = Object.entries(generated.variables);
+    if (entries.length === 0) {
+      return generated.url;
+    }
+    return entries
+      .map(([key, value]) => `${key}: ${this.formatVariableValue(value)}`)
+      .join(" · ");
+  }
+
+  private formatVariableValue(value: unknown): string {
+    if (value == null) {
+      return "";
+    }
+    if (typeof value === "object") {
+      return JSON.stringify(value);
+    }
+    return String(value);
+  }
 
   openUrl(url: string) {
     (window as any).api.sendToBackend.openUrlInBrowser({ url });
   }
+
   openChatDialog(url: GeneratedURL) {
     console.log("Opening chat dialog for URL:", url);
     this.dialog.open(ChatDialogComponent, {
@@ -310,23 +299,14 @@ export class UrlGeneratorComponent implements OnInit {
     });
   }
 
- randomUrl() {
-  const targetIndex=Math.floor(Math.random()*this.urlCount);
-  this.randomURlRecu(this.groupedUrls()[0], 0, targetIndex);
- }
-
- private randomURlRecu(url:GroupedURl, currIndex:number, targetIndex:number): number{
-  for(const u of url.urls){
-    if(currIndex>=targetIndex){
-      this.openUrl(u.url);
-      this.openChatDialog(u);
-      return -10;
+  randomUrl() {
+    const tiles = this.websiteTiles();
+    const allUrls = tiles.flatMap(tile => tile.urls);
+    if (allUrls.length === 0) {
+      return;
     }
-    currIndex++;
+    const picked = allUrls[Math.floor(Math.random() * allUrls.length)];
+    this.openUrl(picked.url);
+    this.openChatDialog(picked);
   }
-  for(const g of url.children ?? []){
-    currIndex=this.randomURlRecu(g, currIndex, targetIndex); 
-  }
-  return currIndex;
- }
 }
