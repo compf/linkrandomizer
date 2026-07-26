@@ -29,7 +29,10 @@ const EventFromBackendServices:Record<keyof EventFromBackendType,null>={
 const InvokeFromBackendServices:Record<keyof InvokeFromBackendType,null>={
 	explainUrl:null,
 	generateRankScript:null,
-	getKey:null
+	getKey:null,
+	listControllerDefinitions:null,
+	saveControllerDefinition:null,
+	loadControllerDefinition:null
 }
 const  sendToBackend=Object.keys(sendToBackendServices).map((it)=>{
 	return [it,(data:any)=>{

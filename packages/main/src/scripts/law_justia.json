@@ -1,0 +1,9 @@
+{
+  "name": "law_justia",
+  "initialUrl": "https://law.justia.com/",
+  "parentDomain": "https://law.justia.com/",
+  "maxDepth": 2,
+  "canBeVisitedRegex": "law",
+  "canBeReturnedRegex": "law",
+  "requireUserAttentionRegex": ""
+}

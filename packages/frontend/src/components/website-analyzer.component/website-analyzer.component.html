@@ -1,18 +1,95 @@
 <div class="tab-content">
   <h3>Analyze Websites for URL Generation</h3>
   <p class="hint">
-    Select one or more website controller scripts. Crawling alternates between sites so no single
-    site is hit too often. After the browser opens, dismiss cookie banners, then click
-    <strong>Play</strong> in the overlay to start (or <strong>Stop</strong> to end).
+    Craft a simple regex-based controller, save it (JSON + JS in the scripts folder), then run a crawl.
+    Multiple selected controllers alternate so no single site is hit too often. After the browser opens,
+    dismiss cookie banners and click <strong>Play</strong> in the overlay.
   </p>
+
+  <section class="panel">
+    <div class="panel-header">
+      <h4>Controller editor</h4>
+      <div class="panel-actions">
+        <button type="button" class="secondary-btn" (click)="resetForm()">New</button>
+        <button type="button" class="analyze-btn" (click)="saveController()">Save</button>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <label>
+        Name
+        <input type="text" [(ngModel)]="draft.name" name="name" placeholder="my_site" />
+      </label>
+      <label>
+        Max depth
+        <input type="number" [(ngModel)]="draft.maxDepth" name="maxDepth" min="0" />
+      </label>
+      <label class="full">
+        Initial URL
+        <input type="url" [(ngModel)]="draft.initialUrl" name="initialUrl" placeholder="https://example.com/start" />
+      </label>
+      <label class="full">
+        Parent domain
+        <input type="url" [(ngModel)]="draft.parentDomain" name="parentDomain" placeholder="https://example.com" />
+      </label>
+      <label class="full">
+        canBeVisited regex
+        <input type="text" [(ngModel)]="draft.canBeVisitedRegex" name="canBeVisitedRegex" placeholder="example\\.com/section/" />
+      </label>
+      <label class="full">
+        canBeReturned regex
+        <input type="text" [(ngModel)]="draft.canBeReturnedRegex" name="canBeReturnedRegex" placeholder="example\\.com/article/" />
+      </label>
+      <label class="full">
+        requireUserAttention regex (optional, matches page text)
+        <input
+          type="text"
+          [(ngModel)]="draft.requireUserAttentionRegex"
+          name="requireUserAttentionRegex"
+          placeholder="Accept (all )?cookies|Captcha" />
+      </label>
+    </div>
+    <p class="form-message" *ngIf="formMessage()">{{ formMessage() }}</p>
+  </section>
+
+  <section class="panel">
+    <div class="panel-header">
+      <h4>Saved controllers</h4>
+      <button type="button" class="secondary-btn" (click)="refreshSavedControllers()">Refresh</button>
+    </div>
+
+    <p class="empty" *ngIf="savedControllers().length === 0">No saved JSON controllers yet.</p>
+    <ul class="controller-list" *ngIf="savedControllers().length > 0">
+      <li *ngFor="let def of savedControllers()">
+        <label class="controller-row">
+          <input
+            type="checkbox"
+            [checked]="!!selectedNames[def.name]"
+            (change)="toggleSelected(def.name, $any($event.target).checked)" />
+          <span class="controller-meta">
+            <span class="controller-name">{{ def.name }}</span>
+            <span class="controller-url">{{ def.initialUrl }}</span>
+          </span>
+        </label>
+        <button type="button" class="link-btn" (click)="loadIntoForm(def)">Edit</button>
+      </li>
+    </ul>
+  </section>
 
   <div class="input-section">
     <button
       type="button"
-      (click)="startAnalysis()"
+      (click)="startAnalysisFromSelection()"
       class="analyze-btn"
       [disabled]="isAnalyzing">
-      Analyze
+      Analyze selected
+    </button>
+    <button
+      type="button"
+      (click)="startAnalysisFromFiles()"
+      class="secondary-btn"
+      [disabled]="isAnalyzing">
+      Analyze from files…
     </button>
     <button
       type="button"
