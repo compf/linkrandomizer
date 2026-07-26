@@ -1,6 +1,6 @@
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 
 @Component({
   selector: 'app-website-analyzer',
@@ -10,26 +10,47 @@ import { Component, inject, OnInit, signal } from '@angular/core';
   imports: [CommonModule, FormsModule]
 })
 export class WebsiteAnalyzerComponent implements OnInit {
-  websiteUrl = '';
   isAnalyzing = false;
-
-
-  obtainedUrls = signal<string[]>([]);
   numberOfUrls = signal<number>(0);
-  maxDepth = 3;
-  canBeVisitedRegex = '';
-  canBeReturnedRegex = '';
+  statusMessage = signal<string>('Select one or more website controllers to crawl. Requests alternate between sites.');
+
   ngOnInit() {
     (window as any).api.eventFromBackend.webSiteAnalysisStateChanged((state: number) => {
       this.numberOfUrls.set(state);
+      if (this.isAnalyzing) {
+        this.statusMessage.set('Crawling… use Play/Stop in the browser window to control the run.');
+      }
+    });
+    (window as any).api.eventFromBackend.webSiteAnalysisFinished(() => {
+      this.isAnalyzing = false;
+      this.statusMessage.set('Crawl finished. Progress was saved.');
     });
   }
 
-  analyzeWebsite() {
-  
-      window.api.sendToBackend.setActive(!this.isAnalyzing);
-      this.isAnalyzing=!this.isAnalyzing;
-      window.api.sendToBackend.analyzeWebsite({ url: this.websiteUrl, maxDepth: this.maxDepth, canBeVisitedRegex: this.canBeVisitedRegex, canBeReturnedRegex: this.canBeReturnedRegex });
-    
+  startAnalysis() {
+    if (this.isAnalyzing) {
+      return;
+    }
+    this.isAnalyzing = true;
+    this.numberOfUrls.set(0);
+    this.statusMessage.set(
+      'Pick controller file(s), then in the browser clear cookie banners and click Play to start.',
+    );
+    window.api.sendToBackend.setActive(true);
+    window.api.sendToBackend.analyzeWebsite({
+      url: '',
+      maxDepth: 3,
+      canBeVisitedRegex: '',
+      canBeReturnedRegex: '',
+    });
+  }
+
+  stopAnalysis() {
+    if (!this.isAnalyzing) {
+      return;
+    }
+    window.api.sendToBackend.setActive(false);
+    this.isAnalyzing = false;
+    this.statusMessage.set('Crawl stopped. Progress was saved.');
   }
 }

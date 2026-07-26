@@ -22,6 +22,7 @@ const sendToBackendServices:Record<keyof SendToBackendType,null>={
 const EventFromBackendServices:Record<keyof EventFromBackendType,null>={
 	randomUrlsGenerated:null,
 	webSiteAnalysisStateChanged:null,
+	webSiteAnalysisFinished:null,
 	onContentLoaded:null
 }
 

@@ -1,3 +1,5 @@
+import type { Page } from "playwright";
+
 export interface WebsiteController{
     canBeVisited(url:string):boolean;
     canBeReturned(url:string):boolean;

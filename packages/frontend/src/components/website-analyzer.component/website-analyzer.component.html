@@ -1,13 +1,30 @@
 <div class="tab-content">
-  <h3>Analyze Website for URL Generation</h3>
+  <h3>Analyze Websites for URL Generation</h3>
+  <p class="hint">
+    Select one or more website controller scripts. Crawling alternates between sites so no single
+    site is hit too often. After the browser opens, dismiss cookie banners, then click
+    <strong>Play</strong> in the overlay to start (or <strong>Stop</strong> to end).
+  </p>
+
   <div class="input-section">
-  
-    <button (click)="analyzeWebsite()"  class="analyze-btn">
-
-      {{ isAnalyzing ? 'Stop Analysis' : 'Analyze' }}
+    <button
+      type="button"
+      (click)="startAnalysis()"
+      class="analyze-btn"
+      [disabled]="isAnalyzing">
+      Analyze
     </button>
+    <button
+      type="button"
+      (click)="stopAnalysis()"
+      class="stop-btn"
+      [disabled]="!isAnalyzing">
+      Stop
+    </button>
+  </div>
 
-    <div class="result-section">
-      Obtained URLs: {{ numberOfUrls() }}
-    </div>
+  <div class="result-section">
+    <div class="status">{{ statusMessage() }}</div>
+    <div class="count">Obtained URLs: {{ numberOfUrls() }}</div>
+  </div>
 </div>

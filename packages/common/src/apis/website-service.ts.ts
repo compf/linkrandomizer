@@ -16,6 +16,7 @@ export const WebsiteServiceSchema = {
     eventFromBackend: {
         randomUrlsGenerated: (urls: string[], callback?: (urls: string[]) => void): void => unsupported(),
         webSiteAnalysisStateChanged: (state: number, callback?: (state: number) => void): void => unsupported(),
+        webSiteAnalysisFinished: (callback?: () => void): void => unsupported(),
     }
 }
 
