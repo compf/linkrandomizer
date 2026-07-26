@@ -345,7 +345,9 @@ export const publicWebsites: Record<string, Website> = {
       {
         name: "randomFromRange",
         variableName: "year",
-        min: 1776,
+        // "X_in_Germany" articles are unreliable before ~1800 (e.g. 1776_in_Germany 404s);
+        // coverage is solid from 1800 onward.
+        min: 1800,
         maxExclusive: 2000,
       },
     ],
@@ -368,19 +370,21 @@ export const publicWebsites: Record<string, Website> = {
       },
     ],
   },
-  "wikipedia year": {
+  "wikipedia german plain year": {
+    // German Wikipedia keeps a plain-number article per year (e.g. "1990"), unlike
+    // English Wikipedia which needs a "X_in_Country" suffix.
     schema: [
       "https://de.wikipedia.org/wiki/",
-      { variable: "page", padding: null },
+      { variable: "year", padding: null },
     ],
     downloadType: "downloadFromGeneratedURL",
     tags: ["wikipedia", "history", "german"],
     variables: [
       {
         name: "randomFromRange",
-        variableName: "page",
+        variableName: "year",
         min: 1,
-        maxExclusive: 2000,
+        maxExclusive: 2026,
       },
     ],
   },
@@ -544,6 +548,10 @@ export const publicWebsites: Record<string, Website> = {
     ]
 },
 //https://www.govtrack.us/congress/bills/119/hr9237/text
+// Note: "hr" and "s" bills routinely number in the thousands per congress, but
+// resolution types (hres, sjres, ...) rarely pass a few hundred, so sharing one
+// range across all types caused frequent 404s. Restricting to hr/s and capping
+// below the leanest congress on record (113th: ~5,750 hr / ~3,030 s) keeps hits valid.
 "govtrack_us": {
     schema: [
         "https://www.govtrack.us/congress/bills/",
@@ -555,7 +563,7 @@ export const publicWebsites: Record<string, Website> = {
         "/text",
     ],
     downloadType: "downloadFromGeneratedURL",
-    tags: ["legal", "english"],
+    tags: ["legal", "english", "politics"],
     variables: [
       {
         name: "randomFromRange",
@@ -566,13 +574,248 @@ export const publicWebsites: Record<string, Website> = {
       {
         name: "randomFromSelection",
         variableName: "type",
-        values: ["hr", "s", "hres", "sres", "hjres", "sjres", "hconres", "sconres"],
+        values: ["hr", "s"],
       },
       {
         name: "randomFromRange",
         variableName: "bill",
         min: 1,
-        maxExclusive: 9000,
+        maxExclusive: 2800,
+      },
+    ],
+},
+//https://www.govinfo.gov/content/pkg/PLAW-113publ250/pdf/PLAW-113publ250.pdf
+"us_public_laws": {
+    schema: [
+        "https://www.govinfo.gov/content/pkg/PLAW-",
+        { variable: "congress", padding: null },
+        "publ",
+        { variable: "number", padding: null },
+        "/pdf/PLAW-",
+        { variable: "congress", padding: null },
+        "publ",
+        { variable: "number", padding: null },
+        ".pdf",
+    ],
+    prompt: `
+        Analyze the following US Public Law. What problem was this law intended to solve? Who are the winners and losers of this legislation? What does the language reveal about the political priorities at the time it was passed? Please provide a detailed analysis of the law's content and its likely impact on society.
+        `,
+    downloadType: "downloadFromGeneratedURL",
+    tags: ["legal", "english", "politics"],
+    variables: [
+      {
+        name: "randomFromRange",
+        variableName: "congress",
+        min: 104,
+        maxExclusive: 119,
+      },
+      {
+        name: "randomFromRange",
+        variableName: "number",
+        min: 1,
+        maxExclusive: 200,
+      },
+    ],
+},
+//https://www.legislation.gov.uk/ukpga/2019/15
+"uk_public_general_acts": {
+    schema: [
+        "https://www.legislation.gov.uk/ukpga/",
+        { variable: "year", padding: null },
+        "/",
+        { variable: "chapter", padding: null },
+    ],
+    prompt: `
+        Analyze the following UK Act of Parliament. What societal or political need led to this legislation? Which groups are affected, and how? Are there any notable or controversial provisions? Please provide a detailed analysis of the legal text and its significance within British law.
+        `,
+    downloadType: "downloadFromGeneratedURL",
+    tags: ["legal", "english", "politics"],
+    variables: [
+      {
+        name: "randomFromRange",
+        variableName: "year",
+        min: 1963,
+        maxExclusive: 2025,
+      },
+      {
+        name: "randomFromRange",
+        variableName: "chapter",
+        min: 1,
+        maxExclusive: 15,
+      },
+    ],
+},
+//https://hansard.parliament.uk/commons/2015-03-11
+"uk_hansard_commons": {
+    schema: [
+        "https://hansard.parliament.uk/commons/",
+        { variable: "year", padding: null },
+        "-",
+        { variable: "month", padding: 2 },
+        "-",
+        { variable: "day", padding: 2 },
+    ],
+    prompt: `
+        Analyze the following excerpt from Hansard, the official record of debates in the UK House of Commons. What topics were being debated and what positions did different parties take? What rhetorical techniques are used to strengthen the speakers' own arguments or weaken those of opponents? Please provide a detailed analysis of the political debate and communication strategies.
+        `,
+    downloadType: "downloadFromURLInClipboard",
+    tags: ["politics", "history", "english", "parliamentary"],
+    variables: [
+      {
+        name: "randomDate",
+        minYear: 2000,
+        maxYearExclusive: 2026,
+      },
+    ],
+},
+//https://news.ycombinator.com/item?id=1
+"hacker_news_item": {
+    schema: [
+        "https://news.ycombinator.com/item?id=",
+        { variable: "id", padding: null },
+    ],
+    downloadType: "downloadFromGeneratedURL",
+    tags: ["technology", "english"],
+    variables: [
+      {
+        name: "randomFromRange",
+        variableName: "id",
+        min: 1,
+        maxExclusive: 48000000,
+      },
+    ],
+},
+//https://en.wikipedia.org/wiki/Portal:Current_events/2020_July_24
+"wikipedia_current_events": {
+    schema: [
+        "https://en.wikipedia.org/wiki/Portal:Current_events/",
+        { variable: "year", padding: null },
+        "_",
+        { variable: "month", padding: null },
+        "_",
+        { variable: "day", padding: null },
+    ],
+    downloadType: "downloadFromGeneratedURL",
+    tags: ["politics", "history", "english"],
+    variables: [
+      {
+        name: "randomFromRange",
+        variableName: "year",
+        min: 2005,
+        maxExclusive: 2026,
+      },
+      {
+        name: "randomFromSelection",
+        variableName: "month",
+        values: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+      },
+      {
+        name: "randomFromRange",
+        variableName: "day",
+        min: 1,
+        maxExclusive: 29,
+      },
+    ],
+},
+//https://de.wikipedia.org/wiki/Wikipedia:Hauptseite/Archiv/24._Juli_2020
+"wikipedia_hauptseite_archiv": {
+    schema: [
+        "https://de.wikipedia.org/wiki/Wikipedia:Hauptseite/Archiv/",
+        { variable: "day", padding: null },
+        "._",
+        { variable: "month", padding: null },
+        "_",
+        { variable: "year", padding: null },
+    ],
+    downloadType: "downloadFromGeneratedURL",
+    tags: ["politics", "history", "german"],
+    variables: [
+      {
+        name: "randomFromRange",
+        variableName: "year",
+        // Archive pages from 2010 and earlier 404 (e.g. 3._November_2010); 2011 onward is reliable.
+        min: 2011,
+        maxExclusive: 2026,
+      },
+      {
+        name: "randomFromSelection",
+        variableName: "month",
+        values: ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"],
+      },
+      {
+        name: "randomFromRange",
+        variableName: "day",
+        min: 1,
+        maxExclusive: 29,
+      },
+    ],
+},
+//https://xkcd.com/1000/
+"xkcd": {
+    schema: [
+        "https://xkcd.com/",
+        { variable: "number", padding: null },
+        "/",
+    ],
+    downloadType: "downloadFromGeneratedURL",
+    tags: ["technology", "english"],
+    variables: [
+      {
+        name: "randomFromRange",
+        variableName: "number",
+        min: 1,
+        maxExclusive: 3200,
+      },
+    ],
+},
+//https://www.legislation.gov.uk/uksi/2015/500
+// Note: pre-1990 Statutory Instruments were only selectively digitized (e.g. uksi/1985/50
+// and uksi/1960/50 both 404 despite nearby numbers existing), so the range is restricted
+// to the modern, consistently-numbered era.
+"uk_statutory_instruments": {
+    schema: [
+        "https://www.legislation.gov.uk/uksi/",
+        { variable: "year", padding: null },
+        "/",
+        { variable: "number", padding: null },
+    ],
+    prompt: `
+        Analyze the following UK Statutory Instrument (secondary legislation). What is its practical purpose and who does it affect? How does it relate to the primary Act of Parliament it was made under? Please provide a detailed analysis of the regulatory content and its significance.
+        `,
+    downloadType: "downloadFromGeneratedURL",
+    tags: ["legal", "english", "politics"],
+    variables: [
+      {
+        name: "randomFromRange",
+        variableName: "year",
+        min: 1990,
+        maxExclusive: 2024,
+      },
+      {
+        name: "randomFromRange",
+        variableName: "number",
+        min: 1,
+        maxExclusive: 500,
+      },
+    ],
+},
+//https://en.wikipedia.org/wiki/1800_in_France
+// Confirmed as a complete "Years in France" series (unlike Russia/Austria/Spain, which
+// only have scattered, cherry-picked years and 404 on most random picks - not included).
+"wikipedia france year": {
+    schema: [
+      "https://en.wikipedia.org/wiki/",
+      { variable: "year", padding: null },
+      "_in_France",
+    ],
+    downloadType: "downloadFromGeneratedURL",
+    tags: ["wikipedia", "history", "french"],
+    variables: [
+      {
+        name: "randomFromRange",
+        variableName: "year",
+        min: 1550,
+        maxExclusive: 2000,
       },
     ],
 },
