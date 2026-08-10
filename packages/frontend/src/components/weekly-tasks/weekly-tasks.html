@@ -1,0 +1,66 @@
+<div class="weekly-tasks">
+  <header class="weekly-header">
+    <div>
+      <h1>Weekly Tasks</h1>
+      <p class="subtitle">
+        {{ proposalCount }} seeded proposals for the selected week. At least two categories
+        when possible; recently completed activities are much less likely next time.
+      </p>
+    </div>
+  </header>
+
+  <div class="week-controls">
+    <button mat-stroked-button type="button" (click)="shiftWeek(-1)" aria-label="Previous week">
+      <mat-icon>chevron_left</mat-icon>
+    </button>
+
+    <mat-form-field appearance="outline" class="week-field">
+      <mat-label>Year</mat-label>
+      <input matInput type="number" [(ngModel)]="year" (ngModelChange)="onWeekChange()" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="week-field">
+      <mat-label>Week</mat-label>
+      <input
+        matInput
+        type="number"
+        min="1"
+        max="53"
+        [(ngModel)]="weekOfYear"
+        (ngModelChange)="onWeekChange()"
+      />
+    </mat-form-field>
+
+    <button mat-stroked-button type="button" (click)="shiftWeek(1)" aria-label="Next week">
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+
+    <button mat-flat-button color="primary" type="button" (click)="goToCurrentWeek()">
+      This week
+    </button>
+  </div>
+
+  @if (saveError()) {
+    <p class="error">{{ saveError() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="status">Loading…</p>
+  } @else if (proposals().length === 0) {
+    <p class="status">No tasks in the catalog yet.</p>
+  } @else {
+    <ul class="proposal-list">
+      @for (task of proposals(); track task.name) {
+        <li class="proposal-item">
+          <mat-checkbox
+            [checked]="task.checked"
+            (change)="onCheckedChange(task, $event.checked)"
+          >
+            <span class="task-name">{{ task.name }}</span>
+            <span class="task-category">{{ task.category }}</span>
+          </mat-checkbox>
+        </li>
+      }
+    </ul>
+  }
+</div>

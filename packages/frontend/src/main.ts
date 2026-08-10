@@ -9,8 +9,10 @@ import { WebsiteAnalyzerComponent } from './components/website-analyzer.componen
 import { ElectronService } from '@linkrandomizer/common';
 import { FrontendUrlHandler } from './frontend-handler/frontend-url-handler';
 import { FrontendWebsiteHandler } from './frontend-handler/frontend-website-handler';
+import { FrontendTaskHandler } from './frontend-handler/frontend-task-handler';
 import { FrontendService } from './frontend-handler/frontend-service';
 import { RandomFactsComponent } from './components/random-facts/random-facts';
+import { WeeklyTasksComponent } from './components/weekly-tasks/weekly-tasks';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
@@ -21,15 +23,18 @@ if(window.isElectron){
   const service:ElectronService={
     invokeFromBackend:{
       ...FrontendUrlHandler.invokeFromBackend,
-      ...FrontendWebsiteHandler.invokeFromBackend
+      ...FrontendWebsiteHandler.invokeFromBackend,
+      ...FrontendTaskHandler.invokeFromBackend
     },
     eventFromBackend:{
       ...FrontendUrlHandler.eventFromBackend,
-      ...FrontendWebsiteHandler.eventFromBackend
+      ...FrontendWebsiteHandler.eventFromBackend,
+      ...FrontendTaskHandler.eventFromBackend
     },
     sendToBackend:{
       ...FrontendUrlHandler.sendToBackend,
-      ...FrontendWebsiteHandler.sendToBackend
+      ...FrontendWebsiteHandler.sendToBackend,
+      ...FrontendTaskHandler.sendToBackend
     }
   }
   window.api=service;
@@ -54,6 +59,7 @@ if(window.isElectron){
     UrlGeneratorComponent,
     WebsiteAnalyzerComponent,
     RandomFactsComponent,
+    WeeklyTasksComponent,
   ]
 })
 class App implements OnInit {

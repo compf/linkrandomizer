@@ -3,18 +3,20 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { WebsiteHandler } from './handlers/website-handler.js';
 import { UrlHandler } from './handlers/url-handler.js';
+import { TaskHandler } from './handlers/task-handler.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 let controlWindow: BrowserWindow|undefined=undefined
 const initIPC=()=>{
     const sendToBackend={
         ...WebsiteHandler.sendToBackend,
-        ...UrlHandler.sendToBackend
-        
+        ...UrlHandler.sendToBackend,
+        ...TaskHandler.sendToBackend
     }
     const invokeFromBackend={
         ...WebsiteHandler.invokeFromBackend,
-        ...UrlHandler.invokeFromBackend
+        ...UrlHandler.invokeFromBackend,
+        ...TaskHandler.invokeFromBackend
     }
 
     console.log("sendToBackend keys:", Object.keys(sendToBackend));
