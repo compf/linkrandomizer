@@ -2,47 +2,10 @@ import { GeneratedURL } from "../models/generated_url.js";
 import { Website } from "../models/website_schemas.js";
 import { GroupedURl } from "../models/url-grouper.js";
 import { ItemRanker } from "./item-ranker.js";
+import { extractDateFromVariables } from "../models/date-period.js";
 
-export type ExtractedDate = {
-    year?: number;
-    month?: number;
-    day?: number;
-};
-
-const toInt = (value: unknown): number | undefined => {
-    if (typeof value === "number" && Number.isFinite(value)) {
-        return Math.trunc(value);
-    }
-    if (typeof value === "string" && value.trim() !== "") {
-        const parsed = Number.parseInt(value, 10);
-        return Number.isFinite(parsed) ? parsed : undefined;
-    }
-    return undefined;
-};
-
-export const extractDateFromUrl = (generatedUrl: GeneratedURL): ExtractedDate => {
-    const { variables, url } = generatedUrl;
-    const year = toInt(variables.year ?? variables.year1);
-    const month = toInt(variables.month ?? variables.month1);
-    const day = toInt(variables.day ?? variables.day1);
-
-    if (year !== undefined) {
-        return { year, month, day };
-    }
-
-    const match = url.match(/(?:^|[^\d])(1[89]\d{2}|20\d{2}|21\d{2})(?:[^\d]|$)/);
-    if (!match) {
-        return {};
-    }
-
-    const parsedYear = Number.parseInt(match[1], 10);
-    const monthMatch = url.match(/(?:^|[^\d])(1[89]\d{2}|20\d{2}|21\d{2})[^\d](0?[1-9]|1[0-2])(?:[^\d]|$)/);
-    const parsedMonth = monthMatch ? Number.parseInt(monthMatch[2], 10) : undefined;
-
-    return {
-        year: parsedYear,
-        month: parsedMonth,
-    };
+export const extractDateFromUrl = (generatedUrl: GeneratedURL) => {
+    return extractDateFromVariables(generatedUrl.variables, generatedUrl.url);
 };
 
 export const dateProximityScore = (

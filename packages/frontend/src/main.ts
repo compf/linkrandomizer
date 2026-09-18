@@ -1,10 +1,10 @@
 import 'zone.js';
 import '@angular/compiler';
 import { bootstrapApplication } from '@angular/platform-browser';
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { UrlGeneratorComponent } from './components/url-generator.component/url-generator.component';
+import { UrlExplorerComponent } from './components/url-explorer/url-explorer';
 import { WebsiteAnalyzerComponent } from './components/website-analyzer.component/website-analyzer.component';
 import { ElectronService } from '@linkrandomizer/common';
 import { FrontendUrlHandler } from './frontend-handler/frontend-url-handler';
@@ -56,7 +56,7 @@ if(window.isElectron){
     MatTabsModule,
     MatToolbarModule,
     MatIconModule,
-    UrlGeneratorComponent,
+    UrlExplorerComponent,
     WebsiteAnalyzerComponent,
     RandomFactsComponent,
     WeeklyTasksComponent,

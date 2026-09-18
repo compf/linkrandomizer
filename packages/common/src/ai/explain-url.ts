@@ -1,7 +1,8 @@
 import { ChatCompletionAssistantMessageParam, ChatCompletionContentPart, ChatCompletionMessageParam, ChatCompletionUserMessageParam } from "openai/resources";
-import { ChatHistory, ChatMessage, GeneratedURL } from "../index.js";
-import openai from "openai";
+import { ChatHistory, ChatMessage } from "../apis/url-service.js";
+import { GeneratedURL } from "../models/generated_url.js";
 import { post } from "./ai-agent.js";
+import { briefingRequestForUrl, describeGeneratedUrl, getPeriodBriefing } from "./period-briefing.js";
 
 const transformBufferToBase64 = (imageBuffer: ArrayBufferLike): string => {
     
@@ -16,12 +17,7 @@ const transformBufferToBase64 = (imageBuffer: ArrayBufferLike): string => {
 
 }
 
-export const explainURL = async (
-    url: GeneratedURL,
-    messages: ChatHistory
-): Promise<string> => {
-   console.log("Explaining URL with OpenAI. URL:", url, "Messages:", messages);
-   const transformMessage=(message:ChatMessage):string|ChatCompletionContentPart[]=>{
+const transformMessage=(message:ChatMessage):string|ChatCompletionContentPart[]=>{
     if(message.type==="text"){
        return message.text ??""
     }
@@ -52,9 +48,40 @@ export const explainURL = async (
     }
     return ""
 }
- 
 
-    const messagesTransformed: ChatCompletionMessageParam[] = messages.map(msg => {
+export const URL_BRIEF_PROMPT =
+    "What important events in this month and year is this page likely to address? Summarize what a reader would expect to find at this URL, using the date and site context. Do not ask me to paste the page unless necessary.";
+
+export const explainURL = async (
+    url: GeneratedURL,
+    messages: ChatHistory,
+    extras?: { periodBriefing?: string },
+): Promise<string> => {
+   console.log("Explaining URL with OpenAI. URL:", url, "Messages:", messages);
+
+    let periodBriefing = extras?.periodBriefing;
+    if (!periodBriefing) {
+        const request = briefingRequestForUrl(url);
+        if (request) {
+            try {
+                periodBriefing = await getPeriodBriefing(request);
+            } catch (error) {
+                console.error("Failed to load period briefing:", error);
+            }
+        }
+    }
+
+    const systemParts = [
+        "You help a user decide whether to open an archive URL.",
+        describeGeneratedUrl(url),
+        url.website.prompt ? `Site-specific analysis instructions:\n${url.website.prompt.trim()}` : undefined,
+        periodBriefing ? `Known events in this period:\n${periodBriefing}` : undefined,
+        "Use the URL, date, and site context even if the user has not attached page content.",
+    ].filter(Boolean);
+
+    const messagesTransformed: ChatCompletionMessageParam[] = [
+        { role: "system", content: systemParts.join("\n\n") },
+        ...messages.map(msg => {
         if (msg.sender === "assistant") {
             return {
                 role: "assistant",
@@ -67,14 +94,13 @@ export const explainURL = async (
                 
             } as ChatCompletionUserMessageParam;
         }
-    });
+    })];
     console.log("Transformed messages for OpenAI:", messagesTransformed);
 
    try{
-    const response = await post(messagesTransformed);
+    const response = await post(messagesTransformed, { model: "gpt-4o", maxCompletionTokens: 2_000 });
     return response;
    }catch(error){
     return "Error explaining URL:"+(error instanceof Error ? error.message : String(error));
    }
 };
-

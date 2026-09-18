@@ -1,10 +1,18 @@
 import { ChatCompletionMessageParam } from "openai/resources/chat/completions/index.js"
 
-export const post=async(messages:ChatCompletionMessageParam[]):Promise<string>=>{
+export type PostOptions = {
+    model?: string;
+    maxCompletionTokens?: number;
+}
+
+export const post=async(
+    messages:ChatCompletionMessageParam[],
+    options: PostOptions = {},
+):Promise<string>=>{
     const body={
-        model:"gpt-4o",
+        model: options.model ?? "gpt-4o",
         messages:messages,
-        max_completion_tokens:16_000,
+        max_completion_tokens: options.maxCompletionTokens ?? 2_000,
     }
     const key=await (window as any).api.invokeFromBackend.getKey();
     const response=await fetch("https://api.openai.com/v1/chat/completions",{
@@ -15,13 +23,20 @@ export const post=async(messages:ChatCompletionMessageParam[]):Promise<string>=>
         },
         body:JSON.stringify(body)
     })
-    const data=await response.json()
+    let data: { choices?: { message?: { content?: string } }[]; error?: { message?: string } } = {};
+    try {
+        data = await response.json();
+    } catch {
+        data = {};
+    }
     console.log("OpenAI response:", data);
-    try{
-        return data.choices[0].message.content
+    if (!response.ok) {
+        const detail = typeof data.error?.message === "string" ? data.error.message : response.statusText;
+        return `AI request failed (${response.status}): ${detail || "no response body"}`;
     }
-    catch(error){
-        console.error("Error parsing OpenAI response:", error, response);
-        return "Error parsing OpenAI response: "+error+". Response: "+JSON.stringify(response);
+    const content = data.choices?.[0]?.message?.content;
+    if (typeof content === "string" && content.length > 0) {
+        return content;
     }
+    return "AI returned an empty response. Check that an API key is configured.";
 }

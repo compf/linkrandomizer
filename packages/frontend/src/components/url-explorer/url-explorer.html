@@ -1,0 +1,249 @@
+<div class="explorer">
+  <header class="period-bar">
+    <div class="period-bar-main">
+      <h2 class="period-title">URL Explorer</h2>
+      <div class="period-controls">
+        <label class="period-mode">
+          <input type="radio" name="periodMode" value="any" [(ngModel)]="periodMode" (ngModelChange)="onPeriodChange()" />
+          Any time
+        </label>
+        <label class="period-mode">
+          <input type="radio" name="periodMode" value="year" [(ngModel)]="periodMode" (ngModelChange)="onPeriodChange()" />
+          Year
+        </label>
+        <label class="period-mode">
+          <input type="radio" name="periodMode" value="yearMonth" [(ngModel)]="periodMode" (ngModelChange)="onPeriodChange()" />
+          Year + month
+        </label>
+        @if (periodMode !== "any") {
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="period-field">
+            <mat-label>Year</mat-label>
+            <input matInput type="number" min="1" max="2026" [(ngModel)]="periodYear" (change)="onPeriodChange()" />
+          </mat-form-field>
+        }
+        @if (periodMode === "yearMonth") {
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="period-field">
+            <mat-label>Month</mat-label>
+            <input matInput type="number" min="1" max="12" [(ngModel)]="periodMonth" (change)="onPeriodChange()" />
+          </mat-form-field>
+        }
+      </div>
+    </div>
+    <button mat-raised-button color="primary" type="button" (click)="feelingLucky()">
+      <mat-icon>casino</mat-icon>
+      I'm feeling lucky
+    </button>
+  </header>
+
+  <aside class="rail">
+    <h3 class="rail-title">Websites</h3>
+    <p class="rail-help">Add sites to the working set. Unavailable sites do not cover the selected period.</p>
+    <div class="tag-list">
+      @for (tag of allTags(); track tag) {
+        <mat-checkbox [checked]="selectedTags[tag]" (change)="toggleTag(tag, $event.checked)">
+          {{ tag }}
+        </mat-checkbox>
+      }
+    </div>
+    <div class="site-list">
+      @for (entry of railWebsites(); track entry.name) {
+        <button
+          type="button"
+          class="site-row"
+          [class.site-row--active]="isInWorkingSet(entry.name)"
+          [class.site-row--unavailable]="!supportsPeriod(entry.name)"
+          [disabled]="!supportsPeriod(entry.name) && !isInWorkingSet(entry.name)"
+          [matTooltip]="supportsPeriod(entry.name) ? (entry.website.summary || displayName(entry.name)) : 'No coverage for this period'"
+          (click)="toggleWorkingSet(entry.name)">
+          <span class="site-name">{{ displayName(entry.name) }}</span>
+          <span class="site-coverage">{{ coverageLabel(entry.name) }}</span>
+        </button>
+      }
+    </div>
+  </aside>
+
+  <section class="workspace">
+    <div class="chip-row">
+      @if (workingSet().length === 0) {
+        <p class="empty-hint">Pick one or two websites from the list. A third site can replace a column via these chips.</p>
+      }
+      @for (name of workingSet(); track name) {
+        <span class="chip-wrap">
+          <button
+            type="button"
+            class="chip"
+            [class.chip--visible]="isVisible(name)"
+            [class.chip--focused]="isFocused(name)"
+            [class.chip--unavailable]="!supportsPeriod(name)"
+            [disabled]="!supportsPeriod(name)"
+            (click)="activateChip(name)">
+            {{ displayName(name) }}
+          </button>
+          <button
+            type="button"
+            class="chip-remove"
+            (click)="removeFromWorkingSet(name)"
+            [attr.aria-label]="'Remove ' + displayName(name)">
+            <mat-icon>close</mat-icon>
+          </button>
+        </span>
+      }
+    </div>
+
+    <div class="columns" [class]="columnCountClass()">
+      @for (name of visibleColumns(); track name) {
+        <article class="column" [class.column--focused]="isFocused(name)">
+          <header class="column-header">
+            <div>
+              <h3>{{ displayName(name) }}</h3>
+              <p>{{ publicSummary(name) }}</p>
+            </div>
+            <div class="column-actions">
+              <button mat-stroked-button type="button" (click)="shuffle(name)">Shuffle</button>
+              <button mat-stroked-button type="button" (click)="loadMore(name)">Load more</button>
+            </div>
+          </header>
+          <ul class="cards">
+            @for (generated of stackFor(name); track generated.url + $index; let i = $index) {
+              <li>
+                @let view = formatted(name, generated);
+                <button
+                  type="button"
+                  class="url-card"
+                  [class.url-card--selected]="isSelected(name, i)"
+                  (click)="selectCard(name, i)">
+                  <span class="url-card-title">{{ view.title }}</span>
+                  @if (view.summary) {
+                    <span class="url-card-summary">{{ view.summary }}</span>
+                  }
+                  @if (view.extras.length) {
+                    <span class="url-card-extras">
+                      @for (extra of view.extras; track extra.key) {
+                        <span>{{ extra.key }} {{ extra.value }}</span>
+                      }
+                    </span>
+                  }
+                  <span class="url-card-url">{{ generated.url }}</span>
+                  @if (view.undated) {
+                    <span class="url-card-badge">No date</span>
+                  }
+                </button>
+              </li>
+            }
+          </ul>
+          @if (stackFor(name).length === 0) {
+            <p class="empty-hint">No URLs for this period. Try another year or Shuffle after widening the period.</p>
+          }
+        </article>
+      }
+      @if (visibleColumns().length === 0) {
+        <p class="empty-hint">Add a website that covers this period to start generating URLs on demand.</p>
+      }
+    </div>
+  </section>
+
+  <aside class="inspector">
+    @if (selectedFormatted(); as info) {
+      <h3 class="inspector-title">{{ info.title }}</h3>
+      @if (info.summary) {
+        <p class="inspector-summary">{{ info.summary }}</p>
+      }
+      <div class="tag-chips">
+        @for (tag of info.tags; track tag) {
+          <span class="mini-chip">{{ tag }}</span>
+        }
+      </div>
+      <dl class="facts">
+        @if (info.dateLabel) {
+          <dt>Date</dt>
+          <dd>{{ info.dateLabel }}</dd>
+        }
+        @for (extra of info.extras; track extra.key) {
+          <dt>{{ extra.key }}</dt>
+          <dd>{{ extra.value }}</dd>
+        }
+        <dt>URL</dt>
+        <dd class="fact-url">{{ info.displayUrl }}</dd>
+      </dl>
+      <div class="inspector-actions">
+        <button mat-raised-button color="primary" type="button" (click)="openSelected()">Open</button>
+        <button mat-stroked-button type="button" (click)="copySelected()">
+          {{ copied() ? "Copied" : "Copy URL" }}
+        </button>
+        <button mat-raised-button color="accent" type="button" (click)="briefThisUrl()" [disabled]="chatLoading()">
+          Brief this URL
+        </button>
+      </div>
+
+      <section class="briefing">
+        <h4>Events in this period</h4>
+        @if (periodBriefingLoading()) {
+          <mat-progress-spinner diameter="28" mode="indeterminate"></mat-progress-spinner>
+        }
+        @if (periodBriefingError()) {
+          <p class="error">{{ periodBriefingError() }}</p>
+        }
+        @if (periodBriefing()) {
+          <div class="briefing-body" [innerHTML]="markdown(periodBriefing() || '')"></div>
+        }
+        @if (!periodBriefingLoading() && !periodBriefing() && !periodBriefingError() && info.undated) {
+          <p class="empty-hint">This URL has no date, so no period briefing is loaded.</p>
+        }
+      </section>
+
+      <section class="chat">
+        <h4>Chat</h4>
+        <div class="chat-log">
+          @for (message of chatMessages(); track $index) {
+            <div class="chat-msg" [class.chat-msg--user]="message.sender === 'user'">
+              @if (message.content.type === "image") {
+                <img [src]="imageSrc(message.content)" alt="Attached image" />
+              } @else {
+                <div [innerHTML]="renderMessage(message.content)"></div>
+              }
+            </div>
+          }
+          @if (chatLoading()) {
+            <mat-progress-spinner diameter="28" mode="indeterminate"></mat-progress-spinner>
+          }
+        </div>
+        <div class="chat-compose">
+          <input
+            [(ngModel)]="chatInput"
+            placeholder="Ask about this URL"
+            (keydown.enter)="sendMessage()" />
+          <button
+            mat-icon-button
+            type="button"
+            [class.is-highlighted]="downloadType() === 'downloadFromGeneratedURL'"
+            (click)="attachGenerated()"
+            matTooltip="Attach page content">
+            <mat-icon>link</mat-icon>
+          </button>
+          <button
+            mat-icon-button
+            type="button"
+            [class.is-highlighted]="downloadType() === 'downloadFromURLInClipboard'"
+            (click)="attachClipboard()"
+            matTooltip="Attach clipboard URL content">
+            <mat-icon>content_paste</mat-icon>
+          </button>
+          <button
+            mat-icon-button
+            type="button"
+            [class.is-highlighted]="downloadType() === 'screenshotInClipboard'"
+            (click)="attachScreenshot()"
+            matTooltip="Attach screenshot">
+            <mat-icon>image</mat-icon>
+          </button>
+          <button mat-raised-button color="primary" type="button" (click)="sendMessage()" [disabled]="chatLoading()">
+            Send
+          </button>
+        </div>
+      </section>
+    } @else {
+      <h3 class="inspector-title">Inspector</h3>
+      <p class="empty-hint">Select a URL card to see the date, full URL, period events, and chat. AI runs only for the selected card.</p>
+    }
+  </aside>
+</div>

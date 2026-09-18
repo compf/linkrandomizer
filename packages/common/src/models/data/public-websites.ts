@@ -21,6 +21,8 @@ async function loadExtractedUrlsFile(filename: string): Promise<ExtractedUrls> {
 
 export const publicWebsites: Record<string, Website> = {
   "nytimes time machine": {
+    displayName: "NYT Time Machine",
+    summary: "New York Times archived daily issues",
     tags: ["newspaper", "english",  "history"],
     //https://timesmachine.nytimes.com/timesmachine/1992/11/05/issue.html
     schema: [
@@ -42,6 +44,8 @@ export const publicWebsites: Record<string, Website> = {
     downloadType: "screenshotInClipboard",
   },
   "völkischer beobachter": {
+    displayName: "Völkischer Beobachter",
+    summary: "Nazi-era daily newspaper via ANNO",
     schema: [
       "https://anno.onb.ac.at/cgi-content/anno?aid=vob&datum=",
       { variable: "year", padding: null },
@@ -69,6 +73,8 @@ export const publicWebsites: Record<string, Website> = {
     downloadType: "downloadFromURLInClipboard",
   },
   "london gazette": {
+    displayName: "London Gazette",
+    summary: "Official UK government journal issue as PDF",
     schema: [
       "https://www.thegazette.co.uk/London/issue/",
       { variable: "page", padding: null },
@@ -89,6 +95,8 @@ export const publicWebsites: Record<string, Website> = {
     downloadType: "downloadFromGeneratedURL",
   },
   "bundesgerichtshof decisions": {
+    displayName: "Bundesgerichtshof decisions",
+    summary: "German Federal Court of Justice search by date range",
     schema: [
       "https://www.bundesgerichtshof.de/SiteGlobals/Forms/Suche/EntscheidungssucheBGH_Formular.html?submit=Datum+einschr%C3%A4nken&nsc=true&startDate=",
       { variable: "year1", padding: null },
@@ -116,6 +124,8 @@ export const publicWebsites: Record<string, Website> = {
     ],
   },
   courtlistener: {
+    displayName: "CourtListener",
+    summary: "US court filings search by filing date",
     schema: [
       "https://www.courtlistener.com/?q=&type=r&order_by=entry_date_filed%20desc&available_only=on&filed_after=",
       { variable: "month1", padding: 2 },
@@ -153,6 +163,8 @@ export const publicWebsites: Record<string, Website> = {
     ],
   },
   "niedersachsen rechtsprechung": {
+    displayName: "Niedersachsen case law",
+    summary: "Lower Saxony court decisions by date range",
     schema: [
       "https://voris.wolterskluwer-online.de/search?query=&in_publication=&in_year=&in_edition=&voris_number=&issuer=&date=",
       { variable: "year1", padding: null },
@@ -180,18 +192,24 @@ export const publicWebsites: Record<string, Website> = {
     ],
   },
   "random wikipedia english": {
+    displayName: "Wikipedia (random, English)",
+    summary: "A random English Wikipedia article",
     schema: ["https://en.wikipedia.org/wiki/Special:Random"],
     downloadType: "downloadFromURLInClipboard",
     tags: ["wikipedia", "english"],
     variables: [],
   },
   "random wikipedia german": {
+    displayName: "Wikipedia (random, German)",
+    summary: "A random German Wikipedia article",
     schema: ["https://de.wikipedia.org/wiki/Spezial:Zuf%C3%A4llige_Seite"],
     downloadType: "downloadFromURLInClipboard",
     tags: ["wikipedia", "german"],
     variables: [],
   },
   "bundestag protocols": {
+    displayName: "Bundestag protocols",
+    summary: "Stenographic record of a Bundestag sitting",
     schema: [
       "https://dserver.bundestag.de/btp/",
       { variable: "wperiod", padding: 2 },
@@ -259,6 +277,8 @@ export const publicWebsites: Record<string, Website> = {
     },
   },
   "niedersachsen plenar protocols": {
+    displayName: "Niedersachsen plenary protocols",
+    summary: "Lower Saxony state parliament sitting record",
     schema: [
       "https://www.landtag-niedersachsen.de/parlamentsdokumente/steno/",
       { variable: "wperiod", padding: 2 },
@@ -287,6 +307,8 @@ export const publicWebsites: Record<string, Website> = {
     ],
   },
   bgbl: {
+    displayName: "Bundesgesetzblatt",
+    summary: "German federal law gazette PDF for a given year",
     schema: [
       "https://media.offenegesetze.de/bgbl1/",
       { variable: "year", padding: null },
@@ -317,6 +339,8 @@ export const publicWebsites: Record<string, Website> = {
     ],
   },
   "wikipedia usa year": {
+    displayName: "Wikipedia: Year in the United States",
+    summary: "English Wikipedia article for a year in US history",
     schema: [
       "https://en.wikipedia.org/wiki/",
       { variable: "year", padding: null },
@@ -334,6 +358,8 @@ export const publicWebsites: Record<string, Website> = {
     ],
   },
   "wikipedia german year": {
+    displayName: "Wikipedia: Year in Germany",
+    summary: "English Wikipedia article for a year in German history",
     schema: [
       "https://en.wikipedia.org/wiki/",
       { variable: "year", padding: null },
@@ -353,6 +379,8 @@ export const publicWebsites: Record<string, Website> = {
     ],
   },
   "wikipedia uk year": {
+    displayName: "Wikipedia: Year in the United Kingdom",
+    summary: "English Wikipedia article for a year in UK history",
     schema: [
       "https://en.wikipedia.org/wiki/",
       { variable: "year", padding: null },
@@ -371,6 +399,8 @@ export const publicWebsites: Record<string, Website> = {
     ],
   },
   "wikipedia german plain year": {
+    displayName: "Wikipedia: Year (German)",
+    summary: "German Wikipedia article named after a calendar year",
     // German Wikipedia keeps a plain-number article per year (e.g. "1990"), unlike
     // English Wikipedia which needs a "X_in_Country" suffix.
     schema: [
@@ -389,6 +419,8 @@ export const publicWebsites: Record<string, Website> = {
     ],
   },
   "us house of representatives reports": {
+    displayName: "US House reports",
+    summary: "Congressional House report PDF from GovInfo",
     schema: [
       "https://www.govinfo.gov/content/pkg/CRPT-",
       { variable: "congress", padding: null },
@@ -421,6 +453,8 @@ export const publicWebsites: Record<string, Website> = {
     ],
   },
   rfc: {
+    displayName: "IETF RFC",
+    summary: "A random Internet RFC specification",
     schema: [
       "https://www.rfc-editor.org/rfc/rfc",
       { variable: "number", padding: null },
@@ -438,6 +472,8 @@ export const publicWebsites: Record<string, Website> = {
     ],
   },
   heise: {
+    displayName: "Heise online",
+    summary: "Crawled German technology news article",
     schema: [
       {
         variable: "url",
@@ -456,6 +492,8 @@ export const publicWebsites: Record<string, Website> = {
   },
 
   "trump_legal_cases": {
+    displayName: "Trump legal cases",
+    summary: "Crawled court document from a related case list",
     schema: [{ variable: "url", padding: null }],
     downloadType: "downloadFromGeneratedURL",
     tags: ["legal", "english"],
@@ -468,6 +506,8 @@ export const publicWebsites: Record<string, Website> = {
     ],
   },
   "thedailywtf": {
+    displayName: "The Daily WTF",
+    summary: "A random software horror story",
     schema: ["https://thedailywtf.com/articles/random"],
     downloadType: "downloadFromGeneratedURL",
     tags: ["technology", "english"],
@@ -475,6 +515,8 @@ export const publicWebsites: Record<string, Website> = {
   },
 //https://eap.bl.uk/archive-file/EAP1086-1-10-2-2
 "barbados_gazette": {
+    displayName: "Barbados Gazette",
+    summary: "British Library EAP scan of a colonial gazette issue",
     schema: [
         "https://eap.bl.uk/archive-file/EAP1086-1-",
         { variable: "volume", padding: null },
@@ -508,6 +550,8 @@ export const publicWebsites: Record<string, Website> = {
 },
 //https://www.newspapers.com/search/results/?date=1850-02-03&page-number=1
 "newspapers_com": {
+    displayName: "Newspapers.com",
+    summary: "Search results for US newspapers on a given day",
     schema: [
         "https://www.newspapers.com/search/results/?date=",
         { variable: "year", padding: null },
@@ -553,6 +597,8 @@ export const publicWebsites: Record<string, Website> = {
 // range across all types caused frequent 404s. Restricting to hr/s and capping
 // below the leanest congress on record (113th: ~5,750 hr / ~3,030 s) keeps hits valid.
 "govtrack_us": {
+    displayName: "GovTrack bills",
+    summary: "US House or Senate bill text for a recent Congress",
     schema: [
         "https://www.govtrack.us/congress/bills/",
         { variable: "congress", padding: null },
@@ -586,6 +632,8 @@ export const publicWebsites: Record<string, Website> = {
 },
 //https://www.govinfo.gov/content/pkg/PLAW-113publ250/pdf/PLAW-113publ250.pdf
 "us_public_laws": {
+    displayName: "US Public Laws",
+    summary: "Enacted US public law PDF from GovInfo",
     schema: [
         "https://www.govinfo.gov/content/pkg/PLAW-",
         { variable: "congress", padding: null },
@@ -619,6 +667,8 @@ export const publicWebsites: Record<string, Website> = {
 },
 //https://www.legislation.gov.uk/ukpga/2019/15
 "uk_public_general_acts": {
+    displayName: "UK Public General Acts",
+    summary: "UK Act of Parliament for a given year and chapter",
     schema: [
         "https://www.legislation.gov.uk/ukpga/",
         { variable: "year", padding: null },
@@ -647,6 +697,8 @@ export const publicWebsites: Record<string, Website> = {
 },
 //https://hansard.parliament.uk/commons/2015-03-11
 "uk_hansard_commons": {
+    displayName: "Hansard (Commons)",
+    summary: "UK House of Commons debates for a sitting day",
     schema: [
         "https://hansard.parliament.uk/commons/",
         { variable: "year", padding: null },
@@ -670,6 +722,8 @@ export const publicWebsites: Record<string, Website> = {
 },
 //https://news.ycombinator.com/item?id=1
 "hacker_news_item": {
+    displayName: "Hacker News",
+    summary: "A random Hacker News item by id",
     schema: [
         "https://news.ycombinator.com/item?id=",
         { variable: "id", padding: null },
@@ -687,6 +741,8 @@ export const publicWebsites: Record<string, Website> = {
 },
 //https://en.wikipedia.org/wiki/Portal:Current_events/2020_July_24
 "wikipedia_current_events": {
+    displayName: "Wikipedia current events",
+    summary: "English Wikipedia portal for a specific day",
     schema: [
         "https://en.wikipedia.org/wiki/Portal:Current_events/",
         { variable: "year", padding: null },
@@ -719,6 +775,8 @@ export const publicWebsites: Record<string, Website> = {
 },
 //https://de.wikipedia.org/wiki/Wikipedia:Hauptseite/Archiv/24._Juli_2020
 "wikipedia_hauptseite_archiv": {
+    displayName: "Wikipedia Hauptseite archive",
+    summary: "Archived German Wikipedia main page for a day",
     schema: [
         "https://de.wikipedia.org/wiki/Wikipedia:Hauptseite/Archiv/",
         { variable: "day", padding: null },
@@ -752,6 +810,8 @@ export const publicWebsites: Record<string, Website> = {
 },
 //https://xkcd.com/1000/
 "xkcd": {
+    displayName: "xkcd",
+    summary: "A random xkcd comic",
     schema: [
         "https://xkcd.com/",
         { variable: "number", padding: null },
@@ -773,6 +833,8 @@ export const publicWebsites: Record<string, Website> = {
 // and uksi/1960/50 both 404 despite nearby numbers existing), so the range is restricted
 // to the modern, consistently-numbered era.
 "uk_statutory_instruments": {
+    displayName: "UK Statutory Instruments",
+    summary: "UK secondary legislation for a year and number",
     schema: [
         "https://www.legislation.gov.uk/uksi/",
         { variable: "year", padding: null },
@@ -803,6 +865,8 @@ export const publicWebsites: Record<string, Website> = {
 // Confirmed as a complete "Years in France" series (unlike Russia/Austria/Spain, which
 // only have scattered, cherry-picked years and 404 on most random picks - not included).
 "wikipedia france year": {
+    displayName: "Wikipedia: Year in France",
+    summary: "English Wikipedia article for a year in French history",
     schema: [
       "https://en.wikipedia.org/wiki/",
       { variable: "year", padding: null },
@@ -821,6 +885,8 @@ export const publicWebsites: Record<string, Website> = {
 },
 //https://www.govinfo.gov/content/pkg/CREC-2026-04-23/pdf/CREC-2026-04-23.pdf
 "govinfo_us": {
+    displayName: "Congressional Record",
+    summary: "US Congressional Record PDF for a sitting day",
     schema: [
         "https://www.govinfo.gov/content/pkg/CREC-",
         { variable: "year", padding: null },
@@ -860,6 +926,8 @@ export const publicWebsites: Record<string, Website> = {
     ],  
 },
 "weser kurier":{
+    displayName: "Weser-Kurier",
+    summary: "Bremen daily newspaper issue (screenshot)",
     schema: [
         "weser----",
         { variable: "year", padding: null },
