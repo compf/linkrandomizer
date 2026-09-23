@@ -1,6 +1,14 @@
 export type DatePeriod = {
     year?: number;
     month?: number;
+    start?: ExtractedDate;
+    end?: ExtractedDate;
+};
+
+export type CalendarDay = {
+    year: number;
+    month: number;
+    day: number;
 };
 
 export type ExtractedDate = {
@@ -39,7 +47,124 @@ export const isDayVariableName = (name: string): boolean =>
     /^day\d*$/i.test(name);
 
 export const periodIsEmpty = (period?: DatePeriod): boolean =>
-    !period || (period.year === undefined && period.month === undefined);
+    !period || (
+        period.year === undefined &&
+        period.month === undefined &&
+        period.start?.year === undefined &&
+        period.end?.year === undefined
+    );
+
+export const compareCalendarDays = (left: CalendarDay, right: CalendarDay): number => {
+    if (left.year !== right.year) {
+        return left.year - right.year;
+    }
+    if (left.month !== right.month) {
+        return left.month - right.month;
+    }
+    return left.day - right.day;
+};
+
+export const daysInMonth = (year: number, month: number): number => {
+    return new Date(year, month, 0).getDate();
+};
+
+export const calendarDayFromJsDate = (date: Date): CalendarDay => ({
+    year: date.getFullYear(),
+    month: date.getMonth() + 1,
+    day: date.getDate(),
+});
+
+export const jsDateFromCalendarDay = (day: CalendarDay): Date => {
+    const date = new Date(0);
+    date.setFullYear(day.year, day.month - 1, day.day);
+    date.setHours(12, 0, 0, 0);
+    return date;
+};
+
+export const fillStart = (date: ExtractedDate): CalendarDay | undefined => {
+    if (date.year === undefined) {
+        return undefined;
+    }
+    const month = date.month ?? 1;
+    const day = date.day ?? 1;
+    return { year: date.year, month, day };
+};
+
+export const fillEnd = (date: ExtractedDate): CalendarDay | undefined => {
+    if (date.year === undefined) {
+        return undefined;
+    }
+    const month = date.month ?? 12;
+    const day = date.day ?? daysInMonth(date.year, month);
+    return { year: date.year, month, day };
+};
+
+export const periodToInclusiveRange = (
+    period?: DatePeriod,
+): { start: CalendarDay; end: CalendarDay } | undefined => {
+    if (periodIsEmpty(period) || !period) {
+        return undefined;
+    }
+    if (period.start?.year !== undefined || period.end?.year !== undefined) {
+        const start = fillStart(period.start ?? period.end ?? {});
+        const end = fillEnd(period.end ?? period.start ?? {});
+        if (!start || !end) {
+            return undefined;
+        }
+        return compareCalendarDays(start, end) <= 0 ? { start, end } : { start: end, end: start };
+    }
+    if (period.year !== undefined && period.month !== undefined) {
+        return {
+            start: { year: period.year, month: period.month, day: 1 },
+            end: {
+                year: period.year,
+                month: period.month,
+                day: daysInMonth(period.year, period.month),
+            },
+        };
+    }
+    if (period.year !== undefined) {
+        return {
+            start: { year: period.year, month: 1, day: 1 },
+            end: { year: period.year, month: 12, day: 31 },
+        };
+    }
+    return undefined;
+};
+
+const calendarFromUtc = (ms: number): CalendarDay => {
+    const date = new Date(ms);
+    return {
+        year: date.getUTCFullYear(),
+        month: date.getUTCMonth() + 1,
+        day: date.getUTCDate(),
+    };
+};
+
+export const sampleDateInPeriod = (
+    period?: DatePeriod,
+    minYear = 1,
+    maxYearExclusive = 2027,
+): CalendarDay => {
+    const siteStart: CalendarDay = { year: minYear, month: 1, day: 1 };
+    const lastYear = maxYearExclusive - 1;
+    const siteEnd: CalendarDay = {
+        year: lastYear,
+        month: 12,
+        day: daysInMonth(lastYear, 12),
+    };
+    const range = periodToInclusiveRange(period);
+    const start = range && compareCalendarDays(range.start, siteStart) > 0 ? range.start : siteStart;
+    const end = range && compareCalendarDays(range.end, siteEnd) < 0 ? range.end : siteEnd;
+    if (compareCalendarDays(start, end) > 0) {
+        return start;
+    }
+    const startMs = Date.UTC(start.year, start.month - 1, start.day);
+    const endMs = Date.UTC(end.year, end.month - 1, end.day);
+    const span = endMs - startMs;
+    const picked = startMs + Math.floor(Math.random() * (span + 86_400_000));
+    return calendarFromUtc(Math.min(picked, endMs));
+};
 
 export const randomInt = (min: number, maxExclusive: number): number => {
     if (!Number.isFinite(min) || !Number.isFinite(maxExclusive)) {
@@ -49,10 +174,6 @@ export const randomInt = (min: number, maxExclusive: number): number => {
         return Math.floor(min);
     }
     return min + Math.floor(Math.random() * (maxExclusive - min));
-};
-
-export const daysInMonth = (year: number, month: number): number => {
-    return new Date(year, month, 0).getDate();
 };
 
 const toInt = (value: unknown): number | undefined => {
@@ -136,18 +257,19 @@ export const extractDateFromVariables = (
 };
 
 export const dateMatchesPeriod = (date: ExtractedDate, period?: DatePeriod): boolean => {
-    if (periodIsEmpty(period)) {
+    const range = periodToInclusiveRange(period);
+    if (!range) {
         return true;
     }
-    if (period?.year !== undefined) {
-        if (date.year === undefined || date.year !== period.year) {
-            return false;
-        }
-    }
-    if (period?.month !== undefined && date.month !== undefined && date.month !== period.month) {
+    if (date.year === undefined) {
         return false;
     }
-    return true;
+    const start = fillStart(date);
+    const end = fillEnd(date);
+    if (!start || !end) {
+        return false;
+    }
+    return compareCalendarDays(start, range.end) <= 0 && compareCalendarDays(end, range.start) >= 0;
 };
 
 export const formatDateLabel = (date: ExtractedDate): string | undefined => {
@@ -161,6 +283,19 @@ export const formatDateLabel = (date: ExtractedDate): string | undefined => {
         return `${formatMonthName(date.month)} ${date.year}`;
     }
     return String(date.year);
+};
+
+export const formatPeriodLabel = (period?: DatePeriod): string => {
+    const range = periodToInclusiveRange(period);
+    if (!range) {
+        return "Any time";
+    }
+    const startLabel = formatDateLabel(range.start);
+    const endLabel = formatDateLabel(range.end);
+    if (startLabel && endLabel && startLabel !== endLabel) {
+        return `${startLabel} – ${endLabel}`;
+    }
+    return startLabel ?? endLabel ?? "Dated period";
 };
 
 export const constrainRangeValue = (

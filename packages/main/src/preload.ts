@@ -34,7 +34,9 @@ const InvokeFromBackendServices:Record<keyof InvokeFromBackendType,null>={
 	saveControllerDefinition:null,
 	loadControllerDefinition:null,
 	loadTaskCompletions:null,
-	saveTaskCompletions:null
+	saveTaskCompletions:null,
+	loadUrlAnnotations:null,
+	saveUrlAnnotations:null
 }
 const  sendToBackend=Object.keys(sendToBackendServices).map((it)=>{
 	return [it,(data:any)=>{

@@ -51,6 +51,15 @@
   width: 108px;
 }
 
+.period-range-field {
+  width: 280px;
+}
+
+.period-label {
+  color: var(--app-text-secondary);
+  font-size: 0.8rem;
+}
+
 .rail,
 .inspector,
 .column {
@@ -70,7 +79,9 @@
 .inspector-title,
 .column-header h3,
 .briefing h4,
-.chat h4 {
+.chat h4,
+.notes h4,
+.compare-header h4 {
   margin: 0 0 8px;
   font-size: 1rem;
 }
@@ -141,6 +152,26 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
+}
+
+.compare-btn {
+  margin-left: auto;
+}
+
+.compare-panel {
+  padding: 10px 12px;
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  background: var(--app-card-bg);
+  max-height: 280px;
+  overflow: auto;
+}
+
+.compare-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .chip-wrap {
@@ -267,12 +298,110 @@
   font-size: 0.75rem;
 }
 
+.url-card-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
 .url-card-badge {
   align-self: flex-start;
   padding: 1px 6px;
   border-radius: 8px;
   background: #eee;
   font-size: 0.7rem;
+}
+
+.url-card-badge--notes {
+  background: #e8f5e9;
+}
+
+.notes {
+  margin-bottom: 16px;
+}
+
+.notes-area,
+.tag-input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--app-border);
+  border-radius: 6px;
+  font: inherit;
+}
+
+.notes-area {
+  min-height: 72px;
+  resize: vertical;
+  margin-bottom: 8px;
+}
+
+.tag-edit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.tag-input {
+  width: auto;
+  min-width: 96px;
+  flex: 1;
+}
+
+.mini-chip--edit {
+  border: 0;
+  cursor: pointer;
+}
+
+.screenshot-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.file-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 12px;
+  height: 36px;
+  border: 1px solid var(--app-border);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.file-btn input {
+  display: none;
+}
+
+.screenshot-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.screenshot {
+  margin: 0;
+}
+
+.screenshot img {
+  width: 100%;
+  border-radius: 6px;
+}
+
+.screenshot figcaption {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 0.7rem;
+}
+
+.screenshot figcaption button {
+  border: 0;
+  background: none;
+  color: #c62828;
+  cursor: pointer;
 }
 
 .facts {

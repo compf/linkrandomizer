@@ -1,6 +1,7 @@
 import 'zone.js';
 import '@angular/compiler';
 import { bootstrapApplication } from '@angular/platform-browser';
+import { provideNativeDateAdapter } from '@angular/material/core';
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -10,6 +11,7 @@ import { ElectronService } from '@linkrandomizer/common';
 import { FrontendUrlHandler } from './frontend-handler/frontend-url-handler';
 import { FrontendWebsiteHandler } from './frontend-handler/frontend-website-handler';
 import { FrontendTaskHandler } from './frontend-handler/frontend-task-handler';
+import { FrontendAnnotationHandler } from './frontend-handler/frontend-annotation-handler';
 import { FrontendService } from './frontend-handler/frontend-service';
 import { RandomFactsComponent } from './components/random-facts/random-facts';
 import { WeeklyTasksComponent } from './components/weekly-tasks/weekly-tasks';
@@ -24,17 +26,20 @@ if(window.isElectron){
     invokeFromBackend:{
       ...FrontendUrlHandler.invokeFromBackend,
       ...FrontendWebsiteHandler.invokeFromBackend,
-      ...FrontendTaskHandler.invokeFromBackend
+      ...FrontendTaskHandler.invokeFromBackend,
+      ...FrontendAnnotationHandler.invokeFromBackend
     },
     eventFromBackend:{
       ...FrontendUrlHandler.eventFromBackend,
       ...FrontendWebsiteHandler.eventFromBackend,
-      ...FrontendTaskHandler.eventFromBackend
+      ...FrontendTaskHandler.eventFromBackend,
+      ...FrontendAnnotationHandler.eventFromBackend
     },
     sendToBackend:{
       ...FrontendUrlHandler.sendToBackend,
       ...FrontendWebsiteHandler.sendToBackend,
-      ...FrontendTaskHandler.sendToBackend
+      ...FrontendTaskHandler.sendToBackend,
+      ...FrontendAnnotationHandler.sendToBackend
     }
   }
   window.api=service;
@@ -70,5 +75,7 @@ class App implements OnInit {
   }
 }
 
-bootstrapApplication(App).catch(err => console.error(err));
+bootstrapApplication(App, {
+  providers: [provideNativeDateAdapter()],
+}).catch(err => console.error(err));
 

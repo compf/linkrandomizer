@@ -3,6 +3,8 @@ import { Component, OnDestroy, OnInit, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
 import { MatCheckboxModule } from "@angular/material/checkbox";
+import { provideNativeDateAdapter } from "@angular/material/core";
+import { MatDatepickerModule } from "@angular/material/datepicker";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
@@ -14,13 +16,22 @@ import {
   DatePeriod,
   GeneratedURL,
   URL_BRIEF_PROMPT,
+  UrlAnnotation,
+  UrlAnnotationStore,
+  UrlScreenshot,
   Website,
+  annotationIsEmpty,
   briefingRequestForUrl,
+  calendarDayFromJsDate,
+  compareVisibleUrls,
+  emptyAnnotation,
   formatCoverageLabel,
   formatGeneratedUrl,
+  formatPeriodLabel,
   generateUrlBatch,
   getPeriodBriefing,
   getTagsForWebsites,
+  jsDateFromCalendarDay,
   loadExtractedUrls,
   publicWebsites,
   tryGenerateRandomURL,
@@ -34,21 +45,36 @@ const converter = new showdown.Converter();
 const BATCH_SIZE = 6;
 const DEFAULT_SITES = ["nytimes time machine", "newspapers_com"];
 const BRIEFING_DEBOUNCE_MS = 400;
+const NOTE_SAVE_DEBOUNCE_MS = 400;
+const MAX_COMPARE_URLS = 40;
 
 type NamedWebsite = { name: string; website: Website };
-type PeriodMode = "any" | "year" | "yearMonth";
+type PeriodMode = "any" | "year" | "yearMonth" | "range";
 type SelectedCard = { site: string; index: number };
+
+const blobToDataUrl = (blob: Blob): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result ?? ""));
+    reader.onerror = () => reject(reader.error ?? new Error("Could not read file"));
+    reader.readAsDataURL(blob);
+  });
+
+const screenshotId = (): string =>
+  globalThis.crypto?.randomUUID?.() ?? `shot-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
 @Component({
   selector: "app-url-explorer",
   templateUrl: "./url-explorer.html",
   styleUrls: ["./url-explorer.css"],
   standalone: true,
+  providers: [provideNativeDateAdapter()],
   imports: [
     CommonModule,
     FormsModule,
     MatButtonModule,
     MatCheckboxModule,
+    MatDatepickerModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
@@ -70,6 +96,10 @@ export class UrlExplorerComponent implements OnInit, OnDestroy {
   periodMode: PeriodMode = "yearMonth";
   periodYear = 1968;
   periodMonth = 11;
+  rangeStart: Date | null = jsDateFromCalendarDay({ year: 1968, month: 11, day: 1 });
+  rangeEnd: Date | null = jsDateFromCalendarDay({ year: 1969, month: 9, day: 30 });
+  pickerMinDate = jsDateFromCalendarDay({ year: 1000, month: 1, day: 1 });
+  pickerMaxDate = jsDateFromCalendarDay({ year: 2026, month: 12, day: 31 });
 
   periodBriefing = signal<string | null>(null);
   periodBriefingLoading = signal(false);
@@ -79,15 +109,31 @@ export class UrlExplorerComponent implements OnInit, OnDestroy {
   chatLoading = signal(false);
   copied = signal(false);
 
+  annotations = signal<UrlAnnotationStore>({});
+  draftNotes = "";
+  draftTagInput = "";
+  annotationSaveError = signal("");
+  compareResult = signal<string | null>(null);
+  compareLoading = signal(false);
+  compareError = signal("");
+
   private briefingTimer: ReturnType<typeof setTimeout> | undefined;
   private briefingRequestId = 0;
   private copyTimer: ReturnType<typeof setTimeout> | undefined;
+  private noteTimer: ReturnType<typeof setTimeout> | undefined;
 
   async ngOnInit() {
     try {
       await loadExtractedUrls();
     } catch (error) {
       console.error("Error loading extracted URLs:", error);
+    }
+
+    try {
+      const stored = await window.api.invokeFromBackend.loadUrlAnnotations();
+      this.annotations.set(stored ?? {});
+    } catch (error) {
+      console.error("Error loading URL annotations:", error);
     }
 
     const named = Object.entries(publicWebsites).map(([name, website]) => ({ name, website }));
@@ -115,6 +161,7 @@ export class UrlExplorerComponent implements OnInit, OnDestroy {
     if (this.copyTimer !== undefined) {
       clearTimeout(this.copyTimer);
     }
+    this.flushNotes();
   }
 
   currentPeriod(): DatePeriod | undefined {
@@ -124,7 +171,20 @@ export class UrlExplorerComponent implements OnInit, OnDestroy {
     if (this.periodMode === "year") {
       return { year: this.periodYear };
     }
+    if (this.periodMode === "range") {
+      if (!this.rangeStart || !this.rangeEnd) {
+        return undefined;
+      }
+      return {
+        start: calendarDayFromJsDate(this.rangeStart),
+        end: calendarDayFromJsDate(this.rangeEnd),
+      };
+    }
     return { year: this.periodYear, month: this.periodMonth };
+  }
+
+  periodLabel(): string {
+    return formatPeriodLabel(this.currentPeriod());
   }
 
   railWebsites(): NamedWebsite[] {
@@ -210,6 +270,23 @@ export class UrlExplorerComponent implements OnInit, OnDestroy {
     return formatGeneratedUrl(generated, selected.site);
   }
 
+  visibleUrlCount(): number {
+    return this.visibleColumns().reduce((sum, name) => sum + this.stackFor(name).length, 0);
+  }
+
+  annotationFor(url: string): UrlAnnotation {
+    return this.annotations()[url] ?? emptyAnnotation();
+  }
+
+  hasAnnotation(url: string): boolean {
+    return !annotationIsEmpty(this.annotationFor(url));
+  }
+
+  selectedAnnotation(): UrlAnnotation {
+    const url = this.selectedGenerated()?.url;
+    return url ? this.annotationFor(url) : emptyAnnotation();
+  }
+
   toggleTag(tag: string, checked: boolean) {
     this.selectedTags[tag] = checked;
   }
@@ -282,6 +359,12 @@ export class UrlExplorerComponent implements OnInit, OnDestroy {
   }
 
   onPeriodChange() {
+    if (this.periodMode === "range") {
+      this.ensureRangeDates();
+      if (!this.rangeStart || !this.rangeEnd) {
+        return;
+      }
+    }
     const slots = this.visibleSlots().map((name) =>
       name && this.supportsPeriod(name) ? name : null,
     ) as [string | null, string | null];
@@ -296,7 +379,16 @@ export class UrlExplorerComponent implements OnInit, OnDestroy {
     this.visibleSlots.set(slots);
     this.stacks.set({});
     this.clearSelection();
+    this.compareResult.set(null);
+    this.compareError.set("");
     this.refillVisibleColumns();
+  }
+
+  onRangeChange() {
+    if (!this.rangeStart || !this.rangeEnd) {
+      return;
+    }
+    this.onPeriodChange();
   }
 
   loadMore(name: string) {
@@ -317,6 +409,7 @@ export class UrlExplorerComponent implements OnInit, OnDestroy {
   }
 
   selectCard(name: string, index: number) {
+    this.flushNotes();
     this.selected.set({ site: name, index });
     const slot = this.visibleSlots().indexOf(name);
     if (slot === 0 || slot === 1) {
@@ -324,6 +417,8 @@ export class UrlExplorerComponent implements OnInit, OnDestroy {
     }
     this.chatMessages.set([]);
     this.chatInput = "";
+    this.draftTagInput = "";
+    this.draftNotes = this.selectedAnnotation().notes;
     this.scheduleBriefing();
   }
 
@@ -436,6 +531,120 @@ export class UrlExplorerComponent implements OnInit, OnDestroy {
     });
   }
 
+  onNotesChange(value: string) {
+    this.draftNotes = value;
+    if (this.noteTimer !== undefined) {
+      clearTimeout(this.noteTimer);
+    }
+    this.noteTimer = setTimeout(() => {
+      this.noteTimer = undefined;
+      void this.saveNotes();
+    }, NOTE_SAVE_DEBOUNCE_MS);
+  }
+
+  addAnnotationTag() {
+    const tag = this.draftTagInput.trim();
+    if (!tag) {
+      return;
+    }
+    this.draftTagInput = "";
+    const current = this.selectedAnnotation();
+    if (current.tags.includes(tag)) {
+      return;
+    }
+    void this.commitAnnotation({
+      ...current,
+      notes: this.draftNotes,
+      tags: [...current.tags, tag],
+    });
+  }
+
+  removeAnnotationTag(tag: string) {
+    const current = this.selectedAnnotation();
+    void this.commitAnnotation({
+      ...current,
+      notes: this.draftNotes,
+      tags: current.tags.filter((entry) => entry !== tag),
+    });
+  }
+
+  async onScreenshotFile(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = "";
+    if (!file) {
+      return;
+    }
+    try {
+      await this.addScreenshot(await blobToDataUrl(file), file.name);
+    } catch (error) {
+      this.annotationSaveError.set(error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  async pasteScreenshot() {
+    try {
+      const items = await navigator.clipboard.read();
+      const imageItem = items.find((item) => item.types.some((type) => type.startsWith("image/")));
+      const type = imageItem?.types.find((entry) => entry.startsWith("image/"));
+      if (!imageItem || !type) {
+        this.annotationSaveError.set("No image found on the clipboard.");
+        return;
+      }
+      const blob = await imageItem.getType(type);
+      await this.addScreenshot(await blobToDataUrl(blob), `clipboard.${type.split("/")[1] ?? "png"}`);
+    } catch (error) {
+      this.annotationSaveError.set(
+        error instanceof Error ? error.message : "Could not read an image from the clipboard.",
+      );
+    }
+  }
+
+  removeScreenshot(id: string) {
+    const current = this.selectedAnnotation();
+    void this.commitAnnotation({
+      ...current,
+      notes: this.draftNotes,
+      screenshots: current.screenshots.filter((shot) => shot.id !== id),
+    });
+  }
+
+  async compareVisible() {
+    const items = this.visibleColumns().flatMap((name) =>
+      this.stackFor(name).map((generated) => ({
+        siteName: this.displayName(name),
+        generated,
+        annotation: this.hasAnnotation(generated.url) ? this.annotationFor(generated.url) : undefined,
+      })),
+    );
+    if (items.length === 0 || this.compareLoading()) {
+      return;
+    }
+    this.compareLoading.set(true);
+    this.compareError.set("");
+    try {
+      const truncated = items.length > MAX_COMPARE_URLS;
+      const text = await compareVisibleUrls(
+        truncated ? items.slice(0, MAX_COMPARE_URLS) : items,
+        this.periodLabel(),
+      );
+      this.compareResult.set(
+        truncated
+          ? `${text}\n\n_Only the first ${MAX_COMPARE_URLS} visible URLs were sent to the model._`
+          : text,
+      );
+    } catch (error) {
+      this.compareError.set(error instanceof Error ? error.message : String(error));
+    } finally {
+      this.compareLoading.set(false);
+    }
+  }
+
+  dismissCompare() {
+    this.compareResult.set(null);
+    this.compareError.set("");
+  }
+
   renderMessage(message: ChatMessage): string {
     if (message.type === "text") {
       return converter.makeHtml(message.text ?? "");
@@ -527,13 +736,85 @@ export class UrlExplorerComponent implements OnInit, OnDestroy {
   }
 
   private clearSelection() {
+    this.flushNotes();
     this.selected.set(null);
     this.chatMessages.set([]);
     this.chatInput = "";
+    this.draftNotes = "";
+    this.draftTagInput = "";
     this.periodBriefing.set(null);
     this.periodBriefingError.set("");
     this.periodBriefingLoading.set(false);
     this.briefingRequestId += 1;
+  }
+
+  private ensureRangeDates() {
+    if (!this.rangeStart) {
+      this.rangeStart = jsDateFromCalendarDay({
+        year: this.periodYear,
+        month: this.periodMonth,
+        day: 1,
+      });
+    }
+    if (!this.rangeEnd) {
+      this.rangeEnd = jsDateFromCalendarDay({ year: 1969, month: 9, day: 30 });
+    }
+  }
+
+  private flushNotes() {
+    if (this.noteTimer !== undefined) {
+      clearTimeout(this.noteTimer);
+      this.noteTimer = undefined;
+      void this.saveNotes();
+    }
+  }
+
+  private async saveNotes() {
+    const current = this.selectedAnnotation();
+    if (!this.selectedGenerated()) {
+      return;
+    }
+    await this.commitAnnotation({ ...current, notes: this.draftNotes });
+  }
+
+  private async addScreenshot(dataUrl: string, name: string) {
+    const shot: UrlScreenshot = {
+      id: screenshotId(),
+      name,
+      dataUrl,
+      addedAt: Date.now(),
+    };
+    const current = this.selectedAnnotation();
+    await this.commitAnnotation({
+      ...current,
+      notes: this.draftNotes,
+      screenshots: [...current.screenshots, shot],
+    });
+  }
+
+  private async commitAnnotation(annotation: UrlAnnotation) {
+    const url = this.selectedGenerated()?.url;
+    if (!url) {
+      return;
+    }
+    const nextStore: UrlAnnotationStore = { ...this.annotations() };
+    const toSave = { ...annotation, updatedAt: Date.now() };
+    if (annotationIsEmpty(toSave)) {
+      delete nextStore[url];
+    } else {
+      nextStore[url] = toSave;
+    }
+    this.annotations.set(nextStore);
+    try {
+      const result = await window.api.invokeFromBackend.saveUrlAnnotations(nextStore);
+      if (result.ok === false) {
+        this.annotationSaveError.set(result.error);
+      } else {
+        this.annotationSaveError.set("");
+      }
+    } catch (error) {
+      this.annotationSaveError.set(error instanceof Error ? error.message : String(error));
+    }
   }
 
   private scheduleBriefing() {

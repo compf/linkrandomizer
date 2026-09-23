@@ -1,6 +1,7 @@
 import {z} from 'zod';
 import { GeneratedURL } from './generated_url.js';
 import {
+    CalendarDay,
     DatePeriod,
     constrainRangeValue,
     dateMatchesPeriod,
@@ -12,7 +13,7 @@ import {
     isYearVariableName,
     monthNameForValues,
     periodIsEmpty,
-    randomInt,
+    sampleDateInPeriod,
 } from './date-period.js';
 import { websiteCoverage } from './url-period.js';
 
@@ -93,14 +94,89 @@ const pickDateParts = (
     minYear: number,
     maxYearExclusive: number,
     period?: DatePeriod,
+    sampled?: CalendarDay,
 ): { year: number; month: number; day: number } => {
-    const year = constrainRangeValue(minYear, maxYearExclusive, period?.year);
-    const month = period?.month !== undefined && period.month >= 1 && period.month <= 12
-        ? period.month
-        : randomInt(1, 13);
-    const day = randomInt(1, daysInMonth(year, month) + 1);
-    return { year, month, day };
+    if (sampled && sampled.year >= minYear && sampled.year < maxYearExclusive) {
+        return sampled;
+    }
+    return sampleDateInPeriod(period, minYear, maxYearExclusive);
 };
+
+const executeRec=(randomURLPart:RandomURLPart,variables:Record<string,unknown>, period?: DatePeriod, sampled?: CalendarDay)=>{
+
+        if(randomURLPart.name==="randomFromRange"){
+            const randRange=randomURLPart as RandomFromRange
+            if (isYearVariableName(randRange.variableName)) {
+                variables[randRange.variableName]=constrainRangeValue(
+                    randRange.min,
+                    randRange.maxExclusive,
+                    sampled?.year ?? period?.year ?? period?.start?.year,
+                )
+            } else if (isMonthVariableName(randRange.variableName)) {
+                variables[randRange.variableName]=constrainRangeValue(
+                    randRange.min,
+                    randRange.maxExclusive,
+                    sampled?.month ?? period?.month ?? period?.start?.month,
+                )
+            } else if (isDayVariableName(randRange.variableName)) {
+                const year = Number(variables.year ?? variables.year1)
+                const month = Number(variables.month ?? variables.month1)
+                let maxExclusive = randRange.maxExclusive
+                if (Number.isFinite(year) && Number.isFinite(month) && month >= 1 && month <= 12) {
+                    maxExclusive = Math.min(maxExclusive, daysInMonth(year, month) + 1)
+                }
+                variables[randRange.variableName]=constrainRangeValue(
+                    randRange.min,
+                    maxExclusive,
+                    sampled?.day,
+                )
+            } else {
+                variables[randRange.variableName]=constrainRangeValue(randRange.min, randRange.maxExclusive)
+            }
+        }
+        else if(randomURLPart.name==="randomDate"){
+            const randDate=randomURLPart as RandomDate
+            const { year, month, day } = pickDateParts(randDate.minYear, randDate.maxYearExclusive, period, sampled)
+            variables["year"]=year
+            variables["month"]=month
+            variables["day"]=day
+        }
+        else if(randomURLPart.name==="randomDateRange"){
+            const randDate=randomURLPart as RandomDateRange
+            const { year, month, day } = pickDateParts(randDate.minYear, randDate.maxYearExclusive, period, sampled)
+            const start = new Date(year, month - 1, day)
+            const addDays=Math.floor(Math.random()*randomURLPart.maxNumberOfDaysToSecondDate)
+            const dt2=new Date(start.getTime()+addDays*24*60*60*1000)
+
+            variables["year1"]=year
+            variables["month1"]=month
+            variables["day1"]=day
+            variables["year2"]=dt2.getFullYear()
+            variables["month2"]=dt2.getMonth()+1
+            variables["day2"]=dt2.getDate()
+        }
+        else if(randomURLPart.name==="randomFromSelection"){
+            const randSelection=randomURLPart as RandomFromSelection
+            const monthHint = sampled?.month ?? period?.month
+            if (isMonthVariableName(randSelection.variableName) && monthHint !== undefined) {
+                const named = monthNameForValues(monthHint, randSelection.values)
+                if (named) {
+                    variables[randSelection.variableName]=named
+                    return
+                }
+            }
+            const looksLikeUrls = randSelection.values.some((value) => /^https?:\/\//.test(value) || value.includes("/"))
+            if (looksLikeUrls && !periodIsEmpty(period)) {
+                variables[randSelection.variableName]=pickFromUrlPool(randSelection.values, period)
+            } else if (randSelection.values.length === 0) {
+                variables[randSelection.variableName]=""
+            } else {
+                variables[randSelection.variableName]=randSelection.values[Math.floor(Math.random()*randSelection.values.length)]
+            }
+        }
+        
+
+}
 
 const pickFromUrlPool = (values: string[], period?: DatePeriod): string => {
     if (values.length === 0) {
@@ -119,77 +195,6 @@ const pickFromUrlPool = (values: string[], period?: DatePeriod): string => {
     }
     return matching[Math.floor(Math.random() * matching.length)];
 };
-
-const executeRec=(randomURLPart:RandomURLPart,variables:Record<string,unknown>, period?: DatePeriod)=>{
-
-        if(randomURLPart.name==="randomFromRange"){
-            const randRange=randomURLPart as RandomFromRange
-            if (isYearVariableName(randRange.variableName)) {
-                variables[randRange.variableName]=constrainRangeValue(
-                    randRange.min,
-                    randRange.maxExclusive,
-                    period?.year,
-                )
-            } else if (isMonthVariableName(randRange.variableName)) {
-                variables[randRange.variableName]=constrainRangeValue(
-                    randRange.min,
-                    randRange.maxExclusive,
-                    period?.month,
-                )
-            } else if (isDayVariableName(randRange.variableName)) {
-                const year = Number(variables.year ?? variables.year1)
-                const month = Number(variables.month ?? variables.month1)
-                let maxExclusive = randRange.maxExclusive
-                if (Number.isFinite(year) && Number.isFinite(month) && month >= 1 && month <= 12) {
-                    maxExclusive = Math.min(maxExclusive, daysInMonth(year, month) + 1)
-                }
-                variables[randRange.variableName]=constrainRangeValue(randRange.min, maxExclusive)
-            } else {
-                variables[randRange.variableName]=constrainRangeValue(randRange.min, randRange.maxExclusive)
-            }
-        }
-        else if(randomURLPart.name==="randomDate"){
-            const randDate=randomURLPart as RandomDate
-            const { year, month, day } = pickDateParts(randDate.minYear, randDate.maxYearExclusive, period)
-            variables["year"]=year
-            variables["month"]=month
-            variables["day"]=day
-        }
-        else if(randomURLPart.name==="randomDateRange"){
-            const randDate=randomURLPart as RandomDateRange
-            const { year, month, day } = pickDateParts(randDate.minYear, randDate.maxYearExclusive, period)
-            const start = new Date(year, month - 1, day)
-            const addDays=Math.floor(Math.random()*randomURLPart.maxNumberOfDaysToSecondDate)
-            const dt2=new Date(start.getTime()+addDays*24*60*60*1000)
-
-            variables["year1"]=year
-            variables["month1"]=month
-            variables["day1"]=day
-            variables["year2"]=dt2.getFullYear()
-            variables["month2"]=dt2.getMonth()+1
-            variables["day2"]=dt2.getDate()
-        }
-        else if(randomURLPart.name==="randomFromSelection"){
-            const randSelection=randomURLPart as RandomFromSelection
-            if (isMonthVariableName(randSelection.variableName) && period?.month !== undefined) {
-                const named = monthNameForValues(period.month, randSelection.values)
-                if (named) {
-                    variables[randSelection.variableName]=named
-                    return
-                }
-            }
-            const looksLikeUrls = randSelection.values.some((value) => /^https?:\/\//.test(value) || value.includes("/"))
-            if (looksLikeUrls && !periodIsEmpty(period)) {
-                variables[randSelection.variableName]=pickFromUrlPool(randSelection.values, period)
-            } else if (randSelection.values.length === 0) {
-                variables[randSelection.variableName]=""
-            } else {
-                variables[randSelection.variableName]=randSelection.values[Math.floor(Math.random()*randSelection.values.length)]
-            }
-        }
-        
-
-}
 
 const stitchUrl = (website: Website, variables: Record<string, unknown>): string => {
     let url=""
@@ -220,9 +225,13 @@ const stitchUrl = (website: Website, variables: Record<string, unknown>): string
 
 const generateOnce = (website: Website, period?: DatePeriod): GeneratedURL => {
     const variables:Record<string,unknown>={}
+    const coverage = websiteCoverage(website)
+    const sampled = periodIsEmpty(period)
+        ? undefined
+        : sampleDateInPeriod(period, coverage.minYear ?? 1, (coverage.maxYear ?? 2026) + 1)
     
     for(const variable of website.variables){
-        executeRec(variable, variables, period)
+        executeRec(variable, variables, period, sampled)
     }
     
     const url = stitchUrl(website, variables)

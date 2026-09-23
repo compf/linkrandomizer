@@ -1,25 +1,29 @@
 import { WebsiteServiceSchema } from "./website-service.ts.js";
 import { UrlServiceSchema } from "./url-service.js";
 import { TaskServiceSchema } from "./task-service.js";
+import { AnnotationServiceSchema } from "./annotation-service.js";
 export const unsupported=()=>{
 	throw new Error();
 }
 export const  sendToBackend={
 	...WebsiteServiceSchema.sendToBackend,
 	...UrlServiceSchema.sendToBackend,
-	...TaskServiceSchema.sendToBackend
+	...TaskServiceSchema.sendToBackend,
+	...AnnotationServiceSchema.sendToBackend
 }
 
 export const EventFromBackend={
 	...WebsiteServiceSchema.eventFromBackend,
 	...UrlServiceSchema.eventFromBackend,
-	...TaskServiceSchema.eventFromBackend
+	...TaskServiceSchema.eventFromBackend,
+	...AnnotationServiceSchema.eventFromBackend
 }
 
 export const InvokeFromBackend={
 	...WebsiteServiceSchema.invokeFromBackend,
 	...UrlServiceSchema.invokeFromBackend,
-	...TaskServiceSchema.invokeFromBackend
+	...TaskServiceSchema.invokeFromBackend,
+	...AnnotationServiceSchema.invokeFromBackend
 }
 
 export const ElectronServiceScheme={

@@ -15,7 +15,11 @@
           <input type="radio" name="periodMode" value="yearMonth" [(ngModel)]="periodMode" (ngModelChange)="onPeriodChange()" />
           Year + month
         </label>
-        @if (periodMode !== "any") {
+        <label class="period-mode">
+          <input type="radio" name="periodMode" value="range" [(ngModel)]="periodMode" (ngModelChange)="onPeriodChange()" />
+          Date range
+        </label>
+        @if (periodMode === "year" || periodMode === "yearMonth") {
           <mat-form-field appearance="outline" subscriptSizing="dynamic" class="period-field">
             <mat-label>Year</mat-label>
             <input matInput type="number" min="1" max="2026" [(ngModel)]="periodYear" (change)="onPeriodChange()" />
@@ -27,6 +31,18 @@
             <input matInput type="number" min="1" max="12" [(ngModel)]="periodMonth" (change)="onPeriodChange()" />
           </mat-form-field>
         }
+        @if (periodMode === "range") {
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="period-range-field">
+            <mat-label>From / to</mat-label>
+            <mat-date-range-input [rangePicker]="rangePicker" [min]="pickerMinDate" [max]="pickerMaxDate">
+              <input matStartDate [(ngModel)]="rangeStart" placeholder="Start" (dateChange)="onRangeChange()" />
+              <input matEndDate [(ngModel)]="rangeEnd" placeholder="End" (dateChange)="onRangeChange()" />
+            </mat-date-range-input>
+            <mat-datepicker-toggle matIconSuffix [for]="rangePicker"></mat-datepicker-toggle>
+            <mat-date-range-picker #rangePicker startView="multi-year" [startAt]="rangeStart"></mat-date-range-picker>
+          </mat-form-field>
+        }
+        <span class="period-label">{{ periodLabel() }}</span>
       </div>
     </div>
     <button mat-raised-button color="primary" type="button" (click)="feelingLucky()">
@@ -88,7 +104,36 @@
           </button>
         </span>
       }
+      <button
+        mat-stroked-button
+        color="accent"
+        type="button"
+        class="compare-btn"
+        (click)="compareVisible()"
+        [disabled]="compareLoading() || visibleUrlCount() === 0">
+        Compare {{ visibleUrlCount() }} visible URLs
+      </button>
     </div>
+
+    @if (compareLoading() || compareResult() || compareError()) {
+      <section class="compare-panel">
+        <header class="compare-header">
+          <h4>Visible URL breakdown</h4>
+          <button mat-icon-button type="button" (click)="dismissCompare()" aria-label="Dismiss comparison">
+            <mat-icon>close</mat-icon>
+          </button>
+        </header>
+        @if (compareLoading()) {
+          <mat-progress-spinner diameter="28" mode="indeterminate"></mat-progress-spinner>
+        }
+        @if (compareError()) {
+          <p class="error">{{ compareError() }}</p>
+        }
+        @if (compareResult()) {
+          <div class="briefing-body" [innerHTML]="markdown(compareResult() || '')"></div>
+        }
+      </section>
+    }
 
     <div class="columns" [class]="columnCountClass()">
       @for (name of visibleColumns(); track name) {
@@ -124,9 +169,14 @@
                     </span>
                   }
                   <span class="url-card-url">{{ generated.url }}</span>
-                  @if (view.undated) {
-                    <span class="url-card-badge">No date</span>
-                  }
+                  <span class="url-card-badges">
+                    @if (view.undated) {
+                      <span class="url-card-badge">No date</span>
+                    }
+                    @if (hasAnnotation(generated.url)) {
+                      <span class="url-card-badge url-card-badge--notes">Notes</span>
+                    }
+                  </span>
                 </button>
               </li>
             }
@@ -174,6 +224,48 @@
           Brief this URL
         </button>
       </div>
+
+      <section class="notes">
+        <h4>Your notes</h4>
+        <textarea
+          class="notes-area"
+          [ngModel]="draftNotes"
+          (ngModelChange)="onNotesChange($event)"
+          placeholder="What stands out, why keep this URL, follow-ups…"></textarea>
+        <div class="tag-edit">
+          @for (tag of selectedAnnotation().tags; track tag) {
+            <button type="button" class="mini-chip mini-chip--edit" (click)="removeAnnotationTag(tag)">
+              {{ tag }} ×
+            </button>
+          }
+          <input
+            class="tag-input"
+            [(ngModel)]="draftTagInput"
+            placeholder="Add tag"
+            (keydown.enter)="$event.preventDefault(); addAnnotationTag()" />
+        </div>
+        <div class="screenshot-actions">
+          <button mat-stroked-button type="button" (click)="pasteScreenshot()">Paste screenshot</button>
+          <label class="file-btn">
+            <input type="file" accept="image/*" (change)="onScreenshotFile($event)" />
+            Upload image
+          </label>
+        </div>
+        @if (annotationSaveError()) {
+          <p class="error">{{ annotationSaveError() }}</p>
+        }
+        <div class="screenshot-grid">
+          @for (shot of selectedAnnotation().screenshots; track shot.id) {
+            <figure class="screenshot">
+              <img [src]="shot.dataUrl" [alt]="shot.name" />
+              <figcaption>
+                <span>{{ shot.name }}</span>
+                <button type="button" (click)="removeScreenshot(shot.id)">Remove</button>
+              </figcaption>
+            </figure>
+          }
+        </div>
+      </section>
 
       <section class="briefing">
         <h4>Events in this period</h4>
@@ -243,7 +335,7 @@
       </section>
     } @else {
       <h3 class="inspector-title">Inspector</h3>
-      <p class="empty-hint">Select a URL card to see the date, full URL, period events, and chat. AI runs only for the selected card.</p>
+      <p class="empty-hint">Select a URL card to see the date, full URL, notes, period events, and chat. AI runs only when you ask.</p>
     }
   </aside>
 </div>

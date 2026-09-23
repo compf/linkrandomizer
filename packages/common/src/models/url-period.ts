@@ -3,6 +3,7 @@ import {
     extractDateFromString,
     isYearVariableName,
     periodIsEmpty,
+    periodToInclusiveRange,
 } from "./date-period.js";
 import type { Website } from "./website_schemas.js";
 
@@ -89,6 +90,16 @@ export const websiteSupportsPeriod = (website: Website, period?: DatePeriod): bo
     const coverage = websiteCoverage(website);
     if (!coverage.hasDate) {
         return false;
+    }
+    const range = periodToInclusiveRange(period);
+    if (range) {
+        if (coverage.minYear !== undefined && range.end.year < coverage.minYear) {
+            return false;
+        }
+        if (coverage.maxYear !== undefined && range.start.year > coverage.maxYear) {
+            return false;
+        }
+        return true;
     }
     if (period?.year !== undefined) {
         if (coverage.minYear !== undefined && period.year < coverage.minYear) {
