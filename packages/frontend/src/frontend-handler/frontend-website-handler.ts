@@ -1,4 +1,4 @@
-import { InducedSchemaRecord, InduceSchemaResult, RegexWebsiteControllerDefinition, WebsiteService } from "@linkrandomizer/common";
+import { ControllerAssistRequest, ControllerAssistResult, InducedSchemaRecord, InduceSchemaResult, RegexWebsiteControllerDefinition, WebsiteService } from "@linkrandomizer/common";
 import { registerOrCallCallback } from "./frontend-service";
 
 export const FrontendWebsiteHandler: WebsiteService = {
@@ -33,6 +33,9 @@ export const FrontendWebsiteHandler: WebsiteService = {
         },
         induceSchema: async (_data: { site: string }): Promise<InduceSchemaResult> => {
             return { ok: false, error: "Schema induction needs the desktop app." };
+        },
+        proposeController: async (_data: ControllerAssistRequest): Promise<ControllerAssistResult> => {
+            return { ok: false, error: "The controller assistant needs the desktop app." };
         },
         // The web build reads the snapshot the Electron app exports next to the URL pools.
         listInducedSchemas: async (): Promise<InducedSchemaRecord[]> => {

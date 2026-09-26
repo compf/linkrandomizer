@@ -1,7 +1,7 @@
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { Component, OnInit, signal } from '@angular/core';
-import type { InducedSchemaRecord, RegexWebsiteControllerDefinition } from '@linkrandomizer/common';
+import type { ControllerAssistMessage, InducedSchemaRecord, RegexWebsiteControllerDefinition } from '@linkrandomizer/common';
 
 const emptyDraft = (): RegexWebsiteControllerDefinition => ({
   name: '',
@@ -37,6 +37,65 @@ export class WebsiteAnalyzerComponent implements OnInit {
   schemeMessage = signal<string>('');
 
   draft: RegexWebsiteControllerDefinition = emptyDraft();
+
+  assistUrl = '';
+  assistInstruction = '';
+  assistHistory: ControllerAssistMessage[] = [];
+  assistBusy = signal(false);
+  assistError = signal('');
+  assistReasoning = signal('');
+  assistSampleVisited = signal<string[]>([]);
+  assistSampleReturned = signal<string[]>([]);
+
+  resetAssistant() {
+    this.assistUrl = '';
+    this.assistInstruction = '';
+    this.assistHistory = [];
+    this.assistError.set('');
+    this.assistReasoning.set('');
+    this.assistSampleVisited.set([]);
+    this.assistSampleReturned.set([]);
+  }
+
+  async runAssistant() {
+    const startUrl = this.assistUrl.trim();
+    if (!startUrl) {
+      this.assistError.set('Enter a start URL first.');
+      return;
+    }
+    if (this.assistBusy()) {
+      return;
+    }
+    const instruction = this.assistInstruction.trim();
+    this.assistBusy.set(true);
+    this.assistError.set('');
+    try {
+      const result = await window.api.invokeFromBackend.proposeController({
+        startUrl,
+        instruction,
+        history: this.assistHistory,
+      });
+      if (result.ok === false) {
+        this.assistError.set(result.error);
+        return;
+      }
+      this.assistHistory = [
+        ...this.assistHistory,
+        { role: 'user', content: instruction || 'Propose a controller for this site.' },
+        { role: 'assistant', content: result.assistantMessage },
+      ];
+      this.assistReasoning.set(result.reasoning);
+      this.assistSampleVisited.set(result.sampleVisited);
+      this.assistSampleReturned.set(result.sampleReturned);
+      this.draft = { ...result.proposal };
+      this.assistInstruction = '';
+      this.formMessage.set(`AI proposal for “${result.proposal.name}” loaded into the editor.`);
+    } catch (error) {
+      this.assistError.set(error instanceof Error ? error.message : String(error));
+    } finally {
+      this.assistBusy.set(false);
+    }
+  }
 
   ngOnInit() {
     (window as any).api.eventFromBackend.webSiteAnalysisStateChanged((state: number) => {

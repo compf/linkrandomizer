@@ -1,0 +1,11 @@
+{
+  "name": "califronai_court",
+  "initialUrl": "https://law.justia.com/cases/california/court-of-appeal/2019/",
+  "parentDomain": "https://law.justia.com/",
+  "maxDepth": 2,
+  "canBeVisitedRegex": "\\?page=",
+  "canBeReturnedRegex": "/a\\d+\\.html",
+  "requireUserAttentionRegex": "",
+  "sitemapUrl": "",
+  "feedUrl": ""
+}

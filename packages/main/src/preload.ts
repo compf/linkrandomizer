@@ -38,6 +38,7 @@ const InvokeFromBackendServices:Record<keyof InvokeFromBackendType,null>={
 	listCrawledSites:null,
 	induceSchema:null,
 	listInducedSchemas:null,
+	proposeController:null,
 	loadTaskCompletions:null,
 	saveTaskCompletions:null,
 	loadUrlAnnotations:null,

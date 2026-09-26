@@ -8,6 +8,56 @@
 
   <section class="panel">
     <div class="panel-header">
+      <h4>AI controller assistant</h4>
+      <button type="button" class="secondary-btn" (click)="resetAssistant()" [disabled]="assistBusy()">
+        Start over
+      </button>
+    </div>
+    <p class="hint">
+      Give a start URL and describe what to collect; the AI examines the page's links and fills the
+      controller form below. If something looks wrong, tell it what to change.
+    </p>
+    <div class="form-grid">
+      <label class="full">
+        Start URL
+        <input type="url" [(ngModel)]="assistUrl" name="assistUrl" placeholder="https://example.com/archive/" [disabled]="assistHistory.length > 0" />
+      </label>
+      <label class="full">
+        {{ assistHistory.length === 0 ? 'What should be collected?' : 'What should be changed?' }}
+        <input
+          type="text"
+          [(ngModel)]="assistInstruction"
+          name="assistInstruction"
+          [placeholder]="assistHistory.length === 0 ? 'e.g. collect all article pages, browse the monthly archive' : 'e.g. canBeReturned also matches podcasts — exclude those'"
+          (keyup.enter)="runAssistant()" />
+      </label>
+    </div>
+    <div class="input-section">
+      <button type="button" class="analyze-btn" (click)="runAssistant()" [disabled]="assistBusy()">
+        {{ assistBusy() ? 'Thinking…' : assistHistory.length === 0 ? 'Propose controller' : 'Refine proposal' }}
+      </button>
+    </div>
+    <p class="form-message" *ngIf="assistError()">{{ assistError() }}</p>
+    <div *ngIf="assistReasoning()">
+      <p class="form-message">{{ assistReasoning() }}</p>
+      <p class="hint" *ngIf="assistSampleVisited().length > 0">
+        Would visit (from links on the page): {{ assistSampleVisited().join(', ') }}
+      </p>
+      <p class="hint" *ngIf="assistSampleVisited().length === 0">
+        ⚠ canBeVisited matches none of the page's links.
+      </p>
+      <p class="hint" *ngIf="assistSampleReturned().length > 0">
+        Would collect: {{ assistSampleReturned().join(', ') }}
+      </p>
+      <p class="hint" *ngIf="assistSampleReturned().length === 0">
+        ⚠ canBeReturned matches none of the page's links (they may only appear on deeper pages).
+      </p>
+      <p class="hint">The proposal was loaded into the editor below — adjust if needed, then Save.</p>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-header">
       <h4>Controller editor</h4>
       <div class="panel-actions">
         <button type="button" class="secondary-btn" (click)="resetForm()">New</button>

@@ -102,7 +102,8 @@ const sampleLinks = (links: string[], max = 120): string[] => {
     for (const link of links) {
         try {
             const url = new URL(link);
-            const key = url.hostname + "/" + (url.pathname.split("/")[1] ?? "");
+            const segments = url.pathname.split("/");
+            const key = url.hostname + "/" + (segments[1] ?? "") + "/" + (segments[2] ?? "");
             const group = groups.get(key) ?? [];
             if (group.length < 8) {
                 group.push(link);

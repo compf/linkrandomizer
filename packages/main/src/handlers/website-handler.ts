@@ -1,10 +1,13 @@
 import { dialog } from 'electron';
 import {
+    type ControllerAssistRequest,
+    type ControllerAssistResult,
     type InducedSchemaRecord,
     type InduceSchemaResult,
     type RegexWebsiteControllerDefinition,
     type WebsiteService,
 } from '@linkrandomizer/common';
+import { proposeController } from '../ai/controller-assistant.js';
 import { sendToControlWindow } from '../mainBackend.js';
 import { runCrawl as runCrawlLoop, setActive } from '../crawler/crawl-loop.js';
 import { harvestSite } from '../crawler/harvest.js';
@@ -141,6 +144,14 @@ export const WebsiteHandler: WebsiteService = {
             }
         },
         listInducedSchemas: async (): Promise<InducedSchemaRecord[]> => listInducedSchemas(),
+        proposeController: async (data: ControllerAssistRequest): Promise<ControllerAssistResult> => {
+            try {
+                return await proposeController(data);
+            } catch (error) {
+                console.error('Error proposing controller:', error);
+                return { ok: false, error: error instanceof Error ? error.message : String(error) };
+            }
+        },
     },
     eventFromBackend: {
         randomUrlsGenerated: (urls: string[], callback?: (urls: string[]) => void): void => {
