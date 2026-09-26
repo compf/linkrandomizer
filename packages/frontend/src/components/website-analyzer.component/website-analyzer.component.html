@@ -2,8 +2,8 @@
   <h3>Analyze Websites for URL Generation</h3>
   <p class="hint">
     Craft a simple regex-based controller, save it (JSON + JS in the scripts folder), then run a crawl.
-    Multiple selected controllers alternate so no single site is hit too often. After the browser opens,
-    dismiss cookie banners and click <strong>Play</strong> in the overlay.
+    Crawling is HTTP-first and polite (per-domain delays, sitemap/feed sources when configured); a
+    browser window only opens when a site needs it — then dismiss banners and click <strong>Play</strong>.
   </p>
 
   <section class="panel">
@@ -47,6 +47,14 @@
           [(ngModel)]="draft.requireUserAttentionRegex"
           name="requireUserAttentionRegex"
           placeholder="Accept (all )?cookies|Captcha" />
+      </label>
+      <label class="full">
+        Sitemap URL (optional; harvested once before crawling)
+        <input type="url" [(ngModel)]="draft.sitemapUrl" name="sitemapUrl" placeholder="https://example.com/sitemap.xml" />
+      </label>
+      <label class="full">
+        Feed URL (optional RSS/Atom; harvested every run)
+        <input type="url" [(ngModel)]="draft.feedUrl" name="feedUrl" placeholder="https://example.com/rss.xml" />
       </label>
     </div>
     <p class="form-message" *ngIf="formMessage()">{{ formMessage() }}</p>
@@ -104,4 +112,47 @@
     <div class="status">{{ statusMessage() }}</div>
     <div class="count">Obtained URLs: {{ numberOfUrls() }}</div>
   </div>
+
+  <section class="panel">
+    <div class="panel-header">
+      <h4>AI generation schemes</h4>
+      <button type="button" class="secondary-btn" (click)="refreshSchemes()">Refresh</button>
+    </div>
+    <p class="hint">
+      Let the AI analyze a site's collected URLs and propose a generation scheme instead of an
+      ever-growing URL list. Hybrid sites keep a pool, but future harvests only fetch the index
+      pages the scheme enumerates.
+    </p>
+    <p class="empty" *ngIf="crawledSites().length === 0">No crawled sites yet — run a crawl first.</p>
+    <ul class="controller-list" *ngIf="crawledSites().length > 0">
+      <li *ngFor="let site of crawledSites()">
+        <span class="controller-meta">
+          <span class="controller-name">{{ site.name }}</span>
+          <span class="controller-url">
+            {{ site.urlCount }} URLs
+            <ng-container *ngIf="schemeFor(site.name) as scheme">
+              — scheme: {{ scheme.kind }}<ng-container *ngIf="scheme.hitRate !== null">,
+                verified {{ (scheme.hitRate * 100).toFixed(0) }}% ({{ scheme.verifiedSamples }} samples)</ng-container>
+            </ng-container>
+          </span>
+        </span>
+        <button
+          type="button"
+          class="link-btn"
+          (click)="proposeScheme(site.name)"
+          [disabled]="inducingSite() !== null">
+          {{ inducingSite() === site.name ? 'Analyzing…' : (schemeFor(site.name) ? 'Re-analyze' : 'Propose scheme') }}
+        </button>
+        <button
+          *ngIf="canHarvest(site.name)"
+          type="button"
+          class="link-btn"
+          (click)="harvest(site.name)"
+          [disabled]="isAnalyzing">
+          Harvest
+        </button>
+      </li>
+    </ul>
+    <p class="form-message" *ngIf="schemeMessage()">{{ schemeMessage() }}</p>
+  </section>
 </div>

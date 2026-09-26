@@ -1,4 +1,4 @@
-import { RegexWebsiteControllerDefinition, WebsiteService } from "@linkrandomizer/common";
+import { InducedSchemaRecord, InduceSchemaResult, RegexWebsiteControllerDefinition, WebsiteService } from "@linkrandomizer/common";
 import { registerOrCallCallback } from "./frontend-service";
 
 export const FrontendWebsiteHandler: WebsiteService = {
@@ -8,6 +8,9 @@ export const FrontendWebsiteHandler: WebsiteService = {
         },
         setActive: (active: boolean): void => {
             console.log("setActive", active);
+        },
+        harvestSite: (data: { site: string }): void => {
+            console.log("harvestSite (unavailable outside Electron)", data);
         }
     },
     invokeFromBackend: {
@@ -24,6 +27,25 @@ export const FrontendWebsiteHandler: WebsiteService = {
             _data: { name: string },
         ): Promise<RegexWebsiteControllerDefinition | null> => {
             return null;
+        },
+        listCrawledSites: async (): Promise<{ name: string; urlCount: number }[]> => {
+            return [];
+        },
+        induceSchema: async (_data: { site: string }): Promise<InduceSchemaResult> => {
+            return { ok: false, error: "Schema induction needs the desktop app." };
+        },
+        // The web build reads the snapshot the Electron app exports next to the URL pools.
+        listInducedSchemas: async (): Promise<InducedSchemaRecord[]> => {
+            try {
+                const response = await fetch("extracted-urls/induced-schemas.json");
+                if (!response.ok) {
+                    return [];
+                }
+                const parsed = (await response.json()) as InducedSchemaRecord[];
+                return Array.isArray(parsed) ? parsed : [];
+            } catch {
+                return [];
+            }
         },
     },
     eventFromBackend: {

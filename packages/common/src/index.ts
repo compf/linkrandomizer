@@ -8,6 +8,8 @@ export * from "./models/url-period.js";
 export * from "./models/url-display.js";
 export * from "./models/url-annotation.js";
 export * from "./models/regex-website-controller.js";
+export * from "./models/induced-schema.js";
+export * from "./models/controller-assist.js";
 export * from "./apis/url-service.js"
 export * from "./models/generated_url.js"
 export * from "./models/url-grouper.js"

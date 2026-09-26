@@ -1,0 +1,94 @@
+[
+  {
+    "site": "heise",
+    "kind": "hybrid",
+    "website": null,
+    "indexWebsite": {
+      "version": 1,
+      "displayName": "Heise Article Archive",
+      "summary": "Archive page listing articles by year and month.",
+      "tags": [
+        "news",
+        "technology",
+        "archive"
+      ],
+      "schema": [
+        "https://www.heise.de/newsticker/archiv/",
+        {
+          "variable": "year",
+          "padding": null
+        },
+        "/",
+        {
+          "variable": "month",
+          "padding": 2
+        },
+        "/"
+      ],
+      "variables": [
+        {
+          "name": "randomDate",
+          "minYear": 2021,
+          "maxYearExclusive": 2027
+        }
+      ],
+      "downloadType": "downloadFromGeneratedURL"
+    },
+    "leafUrlRegex": "^https://www\\.heise\\.de/news/.+?-\\d+\\.html$",
+    "hitRate": 1,
+    "verifiedSamples": 6,
+    "reasoning": "The result URLs from Heise and T3N do not follow a predictable pattern beyond the presence of a numeric identifier, which appears unpredictable and not set in a dense range. However, the site provides archive index URLs that follow a regular pattern based on year and month, making it possible to generate index pages where these articles are listed.",
+    "verifiedAt": 1790445032883
+  },
+  {
+    "site": "trump_legal_cases",
+    "kind": "hybrid",
+    "website": null,
+    "indexWebsite": {
+      "version": 1,
+      "displayName": "Court Listener Docket Index",
+      "summary": "Index page listing court dockets with linked legal documents",
+      "tags": [
+        "legal",
+        "court-listener",
+        "docket"
+      ],
+      "schema": [
+        "https://www.courtlistener.com/docket/",
+        {
+          "variable": "randomFromRange",
+          "padding": null
+        },
+        "/",
+        {
+          "variable": "randomFromSelection",
+          "padding": null
+        },
+        "/"
+      ],
+      "variables": [
+        {
+          "name": "randomFromRange",
+          "min": 69559509,
+          "maxExclusive": 72259284,
+          "variableName": "docketNumber"
+        },
+        {
+          "name": "randomFromSelection",
+          "values": [
+            "naf",
+            "national-association-for-the-advancement-of-colored-people",
+            "association-of-american-universities"
+          ],
+          "variableName": "caseName"
+        }
+      ],
+      "downloadType": "downloadFromGeneratedURL"
+    },
+    "leafUrlRegex": "https://(archive\\.org|storage\\.courtlistener\\.com)/download/gov\\.uscourts\\.[a-z]+\\.[\\d]+/.*\\.pdf",
+    "hitRate": 0,
+    "verifiedSamples": 1,
+    "reasoning": "The result URLs contain both predictable and unpredictable patterns. While some URLs from 'archive.org' show dense numeric patterns that could be generatable, overall, many of the result URLs include unpredictable components such as title slugs and sparse docket numbers. However, the index pages are hosted on 'courtlistener.com' and follow a pattern that involves a docket number and a case name. Thus, the site can be classified as 'hybrid', focusing on the 'courtlistener.com' index pages which have a decipherable and generatable pattern.",
+    "verifiedAt": 1790446804015
+  }
+]

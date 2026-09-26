@@ -1,7 +1,7 @@
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { Component, OnInit, signal } from '@angular/core';
-import type { RegexWebsiteControllerDefinition } from '@linkrandomizer/common';
+import type { InducedSchemaRecord, RegexWebsiteControllerDefinition } from '@linkrandomizer/common';
 
 const emptyDraft = (): RegexWebsiteControllerDefinition => ({
   name: '',
@@ -11,6 +11,8 @@ const emptyDraft = (): RegexWebsiteControllerDefinition => ({
   canBeVisitedRegex: '',
   canBeReturnedRegex: '',
   requireUserAttentionRegex: '',
+  sitemapUrl: '',
+  feedUrl: '',
 });
 
 @Component({
@@ -29,20 +31,75 @@ export class WebsiteAnalyzerComponent implements OnInit {
   savedControllers = signal<RegexWebsiteControllerDefinition[]>([]);
   selectedNames: Record<string, boolean> = {};
 
+  crawledSites = signal<{ name: string; urlCount: number }[]>([]);
+  inducedSchemas = signal<InducedSchemaRecord[]>([]);
+  inducingSite = signal<string | null>(null);
+  schemeMessage = signal<string>('');
+
   draft: RegexWebsiteControllerDefinition = emptyDraft();
 
   ngOnInit() {
     (window as any).api.eventFromBackend.webSiteAnalysisStateChanged((state: number) => {
       this.numberOfUrls.set(state);
       if (this.isAnalyzing) {
-        this.statusMessage.set('Crawling… use Play/Stop in the browser window to control the run.');
+        this.statusMessage.set('Crawling… a browser window opens only when a site needs manual help.');
       }
     });
     (window as any).api.eventFromBackend.webSiteAnalysisFinished(() => {
       this.isAnalyzing = false;
       this.statusMessage.set('Crawl finished. Progress was saved.');
+      void this.refreshSchemes();
     });
     void this.refreshSavedControllers();
+    void this.refreshSchemes();
+  }
+
+  async refreshSchemes() {
+    try {
+      this.crawledSites.set(await window.api.invokeFromBackend.listCrawledSites());
+      this.inducedSchemas.set(await window.api.invokeFromBackend.listInducedSchemas());
+    } catch (error) {
+      console.error('Error loading crawled sites/schemas:', error);
+    }
+  }
+
+  schemeFor(site: string): InducedSchemaRecord | undefined {
+    return this.inducedSchemas().find((record) => record.site === site);
+  }
+
+  /** Only offer harvesting for hybrid schemes that verification did not refute. */
+  canHarvest(site: string): boolean {
+    const scheme = this.schemeFor(site);
+    return scheme?.kind === 'hybrid' && (scheme.hitRate === null || scheme.hitRate > 0);
+  }
+
+  async proposeScheme(site: string) {
+    this.inducingSite.set(site);
+    this.schemeMessage.set(`Analyzing URL structure of “${site}”…`);
+    try {
+      const result = await window.api.invokeFromBackend.induceSchema({ site });
+      if (result.ok === false) {
+        this.schemeMessage.set(result.error);
+      } else {
+        const rate = result.record.hitRate === null ? 'unverified' : `${(result.record.hitRate * 100).toFixed(0)}% verified`;
+        this.schemeMessage.set(`“${site}” classified as ${result.record.kind} (${rate}). ${result.record.reasoning}`);
+      }
+    } catch (error) {
+      this.schemeMessage.set(error instanceof Error ? error.message : String(error));
+    } finally {
+      this.inducingSite.set(null);
+      await this.refreshSchemes();
+    }
+  }
+
+  harvest(site: string) {
+    if (this.isAnalyzing) {
+      return;
+    }
+    this.isAnalyzing = true;
+    this.numberOfUrls.set(0);
+    this.statusMessage.set(`Harvesting “${site}” from its index scheme…`);
+    window.api.sendToBackend.harvestSite({ site });
   }
 
   async refreshSavedControllers() {
@@ -107,8 +164,8 @@ export class WebsiteAnalyzerComponent implements OnInit {
     this.numberOfUrls.set(0);
     this.statusMessage.set(
       data.openFilePicker
-        ? 'Pick controller JSON/JS file(s), then in the browser clear banners and click Play.'
-        : 'Browser opening… clear cookie banners, then click Play to start.',
+        ? 'Pick controller JSON/JS file(s); crawling starts over HTTP, a browser opens only if needed.'
+        : 'Crawling over HTTP… a browser window opens only if a site needs manual help (then click Play).',
     );
     window.api.sendToBackend.setActive(true);
     window.api.sendToBackend.analyzeWebsite(data);

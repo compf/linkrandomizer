@@ -13,6 +13,10 @@ export type RegexWebsiteControllerDefinition = {
      * (e.g. cookie-banner copy). Empty string disables the check.
      */
     requireUserAttentionRegex: string;
+    /** Optional sitemap.xml URL; when set, the crawler harvests it before any page crawling. */
+    sitemapUrl?: string;
+    /** Optional RSS/Atom feed URL harvested before page crawling. */
+    feedUrl?: string;
 };
 
 export const isRegexWebsiteControllerDefinition = (
@@ -29,6 +33,8 @@ export const isRegexWebsiteControllerDefinition = (
         typeof v.maxDepth === "number" &&
         typeof v.canBeVisitedRegex === "string" &&
         typeof v.canBeReturnedRegex === "string" &&
-        typeof v.requireUserAttentionRegex === "string"
+        typeof v.requireUserAttentionRegex === "string" &&
+        (v.sitemapUrl === undefined || typeof v.sitemapUrl === "string") &&
+        (v.feedUrl === undefined || typeof v.feedUrl === "string")
     );
 };

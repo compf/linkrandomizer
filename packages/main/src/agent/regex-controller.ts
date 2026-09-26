@@ -109,6 +109,8 @@ export const controllerFromDefinition = (
         initialUrl: () => def.initialUrl,
         name: () => def.name,
         parentDomain: () => def.parentDomain,
+        sitemapUrl: () => def.sitemapUrl?.trim() || undefined,
+        feedUrl: () => def.feedUrl?.trim() || undefined,
     };
 };
 

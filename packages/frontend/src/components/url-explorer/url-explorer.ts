@@ -37,6 +37,7 @@ import {
   tryGenerateRandomURL,
   websiteCoverage,
   websiteDisplayName,
+  websiteFromUrlPool,
   websiteSupportsPeriod,
 } from "@linkrandomizer/common";
 import showdown from "showdown";
@@ -137,6 +138,7 @@ export class UrlExplorerComponent implements OnInit, OnDestroy {
     }
 
     const named = Object.entries(publicWebsites).map(([name, website]) => ({ name, website }));
+    named.push(...(await this.loadInducedWebsites()));
     this.allWebsites.set(named);
     this.allTags.set(getTagsForWebsites(named.map((entry) => entry.website)));
     for (const tag of this.allTags()) {
@@ -152,6 +154,30 @@ export class UrlExplorerComponent implements OnInit, OnDestroy {
       this.chatMessages.update((messages) => [...messages, { content: data, sender: "user" }]);
       this.chatLoading.set(false);
     });
+  }
+
+  /** Sites with AI-induced schemes: generatable ones directly, hybrid ones via their harvested pool. */
+  private async loadInducedWebsites(): Promise<NamedWebsite[]> {
+    const result: NamedWebsite[] = [];
+    try {
+      const induced = await window.api.invokeFromBackend.listInducedSchemas();
+      for (const record of induced) {
+        if (publicWebsites[record.site]) {
+          continue;
+        }
+        if (record.kind === "generatable" && record.website) {
+          result.push({ name: record.site, website: record.website });
+        } else if (record.kind === "hybrid") {
+          const pool = await window.api.invokeFromBackend.getUrlPool({ site: record.site });
+          if (Array.isArray(pool) && pool.length > 0) {
+            result.push({ name: record.site, website: websiteFromUrlPool(record, pool) });
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error loading induced websites:", error);
+    }
+    return result;
   }
 
   ngOnDestroy() {

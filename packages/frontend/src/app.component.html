@@ -2,6 +2,49 @@
   <mat-toolbar color="primary" class="app-toolbar">
     <mat-icon class="app-logo">link</mat-icon>
     <span class="app-title">Link Randomizer</span>
+    @if (!frontendService.isElectron) {
+      <div class="settings">
+        <button
+          mat-icon-button
+          type="button"
+          class="settings-button"
+          aria-label="Settings"
+          aria-haspopup="dialog"
+          [attr.aria-expanded]="settingsOpen"
+          matTooltip="Settings"
+          (click)="toggleSettings()">
+          <mat-icon>settings</mat-icon>
+        </button>
+        @if (settingsOpen) {
+          <div class="settings-backdrop" (click)="closeSettings()"></div>
+          <div class="settings-panel" role="dialog" aria-label="API key settings" (click)="$event.stopPropagation()">
+            <p class="settings-title">OpenAI API key</p>
+            <div class="settings-field">
+              <input
+                #apiKeyInput
+                [type]="showApiKey ? 'text' : 'password'"
+                [ngModel]="apiKeyDraft"
+                (ngModelChange)="onApiKeyChange($event)"
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="sk-..."
+                aria-label="OpenAI API key" />
+              <button
+                mat-icon-button
+                type="button"
+                class="settings-visibility"
+                [attr.aria-label]="showApiKey ? 'Hide API key' : 'Show API key'"
+                (click)="showApiKey = !showApiKey">
+                <mat-icon>{{ showApiKey ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+            </div>
+            <p class="settings-status">
+              {{ apiKeyDraft.trim() ? 'Saved in this browser.' : 'Saved automatically when you type. AI requests stay quiet until a key is set.' }}
+            </p>
+          </div>
+        }
+      </div>
+    }
   </mat-toolbar>
 
   <main class="app-main">

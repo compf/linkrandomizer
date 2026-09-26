@@ -1,7 +1,7 @@
 {
-  "name": "gitgraph-x-2",
+  "name": "linkrandomizer",
   "version": "1.0.0",
-  "description": "",
+  "description": "Link randomizer: explore random URLs from generated schemes and crawled pools",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

@@ -6,4 +6,5 @@ src/config.ts
 packages/main/src/config.ts
 packages/frontend/.angular
 packages/main/src/data/internal-websites.ts
+packages/main/data/
 packages/common/src/models/data/url-annotations.json

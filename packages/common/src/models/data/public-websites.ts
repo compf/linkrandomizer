@@ -1,24 +1,5 @@
 import type { RandomFromSelection, Website } from "../website_schemas.js";
 
-type ExtractedUrls = {
-  name: string;
-  urlsToVisit: Record<string, number | null>;
-  urlsToReturn: string[];
-};
-
-const extractedUrlsBasePath = "extracted-urls/";
-
-async function loadExtractedUrlsFile(filename: string): Promise<ExtractedUrls> {
-  const response = await fetch(`${extractedUrlsBasePath}${filename}`);
-  console.log("response:", response);
-  if (!response.ok) {
-    throw new Error(
-      `Failed to load ${extractedUrlsBasePath}${filename}: ${response.status}`,
-    );
-  }
-  return response.json() as Promise<ExtractedUrls>;
-}
-
 export const publicWebsites: Record<string, Website> = {
   "nytimes time machine": {
     displayName: "NYT Time Machine",
@@ -956,22 +937,23 @@ const urlsToBeExtracted:(keyof typeof publicWebsites)[]=[
 
 
 
-let extractedUrlsLoaded = false;
-export let extractedUrlsLoadPromise: Promise<void> | undefined;
-
+/**
+ * Fill the URL pools of enumerated sites from the backing store: SQLite via IPC
+ * in Electron, a static JSON snapshot in the web build (see the getUrlPool
+ * implementations in the main and frontend handlers).
+ */
 export async function loadExtractedUrls(): Promise<void> {
-    return await new Promise(async (resolve, reject) => {
+    await Promise.all(urlsToBeExtracted.map(async (site) => {
         try {
-            const results=await Promise.all(urlsToBeExtracted.map(url => {return {url:url, promise:loadExtractedUrlsFile(url+".json")}}));
-            for(const {url,promise} of results){
-                const extractedUrls=await promise;
-                console.log("extractedUrls:", url, extractedUrls.urlsToReturn);
-                (publicWebsites[url].variables[0] as RandomFromSelection).values=extractedUrls.urlsToReturn as string[];
+            const pool = await (window as any).api.invokeFromBackend.getUrlPool({ site });
+            if (Array.isArray(pool) && pool.length > 0) {
+                (publicWebsites[site].variables[0] as RandomFromSelection).values = pool as string[];
+            } else {
+                console.warn("Empty URL pool for site:", site);
             }
-            resolve();
         } catch (error) {
-            reject(error);
+            console.error("Failed to load URL pool for site:", site, error);
         }
-    });
+    }));
 }
 

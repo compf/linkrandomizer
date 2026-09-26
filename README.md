@@ -1,24 +1,71 @@
-# Minimal Electron + Angular monorepo
+# Link Randomizer
 
-This workspace contains a tiny example where both the Electron `main` package and the `frontend` Angular app call a shared method in the `common` package.
+Explore random URLs from interesting websites: historical newspaper issues, news archives,
+court filings, and anything else that can be described by a URL generation scheme or collected
+by the built-in crawler. Runs as an Electron desktop app (full feature set) or as a plain web
+app (URL exploration only).
 
-Packages:
-- `packages/common` — exports `MyType` and `myFunction`. Build with `npm run build`.
-- `packages/frontend` — minimal Angular app that calls `myFunction` at startup. Build with `npm run build`.
-- `packages/main` — Electron main process that calls `myFunction` and loads the frontend HTML. Start with `npm run start`.
+## Packages
 
-Quick start (from workspace root):
+- `packages/common` — shared models and logic: `Website` generation schemes (fixed URL parts +
+  random variables like dates and ranges), rankers, AI helpers (URL explanation, period
+  briefings), service interfaces used by both frontends.
+- `packages/frontend` — Angular UI: URL explorer (random URL cards, date-period filtering,
+  notes/tags, AI chat about a URL), website analyzer (crawler + AI schemes), weekly tasks.
+- `packages/main` — Electron main process: crawler, storage, AI schema induction, IPC handlers.
 
-1. Install dependencies in each package:
-   - `cd packages/common && npm install`
-   - `cd ../frontend && npm install`
-   - `cd ../main && npm install`
+## How URLs are produced
 
-2. Build and run:
-   - `cd packages/frontend && npm run build` (creates `packages/frontend/dist`)
-   - `cd ../common && npm run build` (creates `packages/common/dist`)
-   - `cd ../main && npm run start` (this builds main then launches Electron)
+Three kinds of sites (classified automatically by AI schema induction):
+
+1. **Generatable** — the URLs follow a scheme (e.g. NYT Time Machine:
+   `.../timesmachine/{year}/{month}/{day}/issue.html`). Defined in
+   `packages/common/src/models/data/public-websites.ts` or induced by the AI.
+2. **Hybrid** — index/archive pages follow a scheme but the result URLs have unguessable slugs
+   (e.g. heise: archive is `/newsticker/archiv/{year}/{month}/`, articles are not guessable).
+   The scheme enumerates the index pages and the crawler harvests the article links from them;
+   re-harvests only fetch the current (still changing) month.
+3. **Opaque** — no usable structure; the classic crawler collects a URL pool.
+
+## Crawler (Electron only)
+
+HTTP-first and polite by design:
+
+- Tier 0: sitemap.xml / RSS harvesting when a controller declares them.
+- Tier 1: plain HTTP fetch + link extraction.
+- Tier 2: a visible browser (persistent profile, Play/Stop overlay) opens only when a site
+  serves challenges or JS-only shells; the user clears banners/captchas manually.
+- Per-domain politeness: minimum delay with jitter, exponential cooldown on 403/429/503 or
+  challenge pages, robots.txt compliance. There is deliberately no bot-protection evasion.
+
+Crawl state lives in SQLite (`better-sqlite3`) in the Electron user-data directory
+(`~/.config/@linkrandomizer/main/linkrandomizer.sqlite` on Linux; override with
+`LINKRANDOMIZER_DB_PATH`). Crawls are resumable; the frontier and collected URL pools survive
+restarts. Slim JSON snapshots are exported to
+`packages/common/src/models/data/extracted-urls/` so the web build can serve the pools as
+static assets.
+
+## AI schema induction
+
+In the analyzer tab, "Propose scheme" sends a sample of a site's collected URLs to the AI,
+which classifies the site and proposes a generation scheme. The proposal is then **verified
+against the live site** (sampled URLs are probed; index schemes must actually list matching
+links) and stored with its measured hit rate. Verified hybrid schemes get a "Harvest" button.
+
+## Development
+
+```bash
+npm run build        # builds common, frontend, main (from the repo root)
+npm start            # builds, then launches the Electron app
+```
+
+Per-package installs (`npx npm@10 install` also works if the system npm misbehaves). The main
+package's `postinstall` rebuilds `better-sqlite3` against the installed Electron version.
 
 Notes:
-- The Electron main process expects `packages/frontend/dist/index.html` to exist (the frontend build copies it to `dist`).
-- If you want, I can run `npm install` and a build locally now and try launching Electron—say the word and I'll proceed.
+- On Wayland systems Electron must run with the X11 backend; `npm start` passes
+  `--ozone-platform=x11` and `launcher.cjs` self-relaunches with the flag otherwise.
+- The OpenAI API key lives in `packages/main/src/config.ts` (gitignored, default export
+  string) for Electron; the web app asks for a key in its settings UI.
+- The web build is `packages/frontend/dist/frontend/browser` — serve it statically; crawling
+  and schema induction are desktop-only, URL exploration works everywhere.

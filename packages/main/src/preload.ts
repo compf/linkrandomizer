@@ -15,6 +15,7 @@ const logging = (text: string) => {
 const sendToBackendServices:Record<keyof SendToBackendType,null>={
 	analyzeWebsite:null,
 	setActive:null,
+	harvestSite:null,
 	openUrlInBrowser:null,
 	obtainUrlContent:null
 }
@@ -30,9 +31,13 @@ const InvokeFromBackendServices:Record<keyof InvokeFromBackendType,null>={
 	explainUrl:null,
 	generateRankScript:null,
 	getKey:null,
+	getUrlPool:null,
 	listControllerDefinitions:null,
 	saveControllerDefinition:null,
 	loadControllerDefinition:null,
+	listCrawledSites:null,
+	induceSchema:null,
+	listInducedSchemas:null,
 	loadTaskCompletions:null,
 	saveTaskCompletions:null,
 	loadUrlAnnotations:null,

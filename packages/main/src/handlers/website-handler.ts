@@ -1,11 +1,15 @@
 import { dialog } from 'electron';
-import { chromium } from 'playwright';
 import {
+    type InducedSchemaRecord,
+    type InduceSchemaResult,
     type RegexWebsiteControllerDefinition,
     type WebsiteService,
 } from '@linkrandomizer/common';
 import { sendToControlWindow } from '../mainBackend.js';
-import { findURLS, setActive } from '../agent/simple-url-finder.js';
+import { runCrawl as runCrawlLoop, setActive } from '../crawler/crawl-loop.js';
+import { harvestSite } from '../crawler/harvest.js';
+import { induceSchemaForSite, listInducedSchemas } from '../ai/schema-inducer.js';
+import { getCrawlStore } from '../storage/crawl-store.js';
 import type { WebsiteController } from '../../url-finder-type.js';
 import {
     CONTROLLER_SCRIPTS_DIR,
@@ -26,16 +30,13 @@ const runCrawl = async (controllers: WebsiteController[]) => {
         finishAnalysis();
         return;
     }
-    const browser = await chromium.launch({ headless: false,
-
-     });
-    const page = await browser.newPage({
-        userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    });
     try {
-        await findURLS(page, controllers);
+        await runCrawlLoop(controllers, {
+            callbacks: {
+                onProgress: (total) => sendToControlWindow('webSiteAnalysisStateChanged', total),
+            },
+        });
     } finally {
-        await browser.close();
         finishAnalysis();
     }
 };
@@ -89,6 +90,19 @@ export const WebsiteHandler: WebsiteService = {
                 finishAnalysis();
             }
         },
+
+        harvestSite: async (data: { site: string }): Promise<void> => {
+            try {
+                setActive(true);
+                await harvestSite(data.site, {
+                    onProgress: (total) => sendToControlWindow('webSiteAnalysisStateChanged', total),
+                });
+            } catch (error) {
+                console.error('Error harvesting site:', error);
+            } finally {
+                finishAnalysis();
+            }
+        },
     },
 
     invokeFromBackend: {
@@ -113,6 +127,20 @@ export const WebsiteHandler: WebsiteService = {
         ): Promise<RegexWebsiteControllerDefinition | null> => {
             return loadControllerDefinition(data.name);
         },
+        listCrawledSites: async (): Promise<{ name: string; urlCount: number }[]> => {
+            const store = await getCrawlStore();
+            return store.listSites().map(({ name }) => ({ name, urlCount: store.countReturned(name) }));
+        },
+        induceSchema: async (data: { site: string }): Promise<InduceSchemaResult> => {
+            try {
+                const record = await induceSchemaForSite(data.site);
+                return { ok: true, record };
+            } catch (error) {
+                console.error('Error inducing schema:', error);
+                return { ok: false, error: error instanceof Error ? error.message : String(error) };
+            }
+        },
+        listInducedSchemas: async (): Promise<InducedSchemaRecord[]> => listInducedSchemas(),
     },
     eventFromBackend: {
         randomUrlsGenerated: (urls: string[], callback?: (urls: string[]) => void): void => {

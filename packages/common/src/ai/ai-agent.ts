@@ -15,6 +15,12 @@ export const post=async(
         max_completion_tokens: options.maxCompletionTokens ?? 2_000,
     }
     const key=await (window as any).api.invokeFromBackend.getKey();
+    if (!key?.trim()) {
+        if ((window as any).isElectron) {
+            return "No OpenAI API key is configured.";
+        }
+        return "No OpenAI API key is configured. Add one from Settings in the top right.";
+    }
     const response=await fetch("https://api.openai.com/v1/chat/completions",{
         method:"POST",
         headers:{

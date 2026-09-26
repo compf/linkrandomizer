@@ -58,11 +58,17 @@ export const FrontendUrlHandler:UrlService={
             return generateRankScript(data.preferences, data.target);
         },
         getKey(): Promise<string> {
-            if(apiKey){
-                return Promise.resolve(apiKey);
+            return Promise.resolve(getStoredApiKey());
+        },
+        // The web build has no crawl DB; it serves snapshots exported by the
+        // Electron app as static assets (see angular.json "extracted-urls").
+        getUrlPool: async (data: { site: string }): Promise<string[]> => {
+            const response = await fetch(`extracted-urls/${data.site}.json`);
+            if (!response.ok) {
+                throw new Error(`Failed to load URL pool for ${data.site}: ${response.status}`);
             }
-            apiKey=prompt("Enter your OpenAI API key") ?? "";
-            return Promise.resolve(apiKey);
+            const parsed = (await response.json()) as { urlsToReturn?: unknown };
+            return Array.isArray(parsed?.urlsToReturn) ? (parsed.urlsToReturn as string[]) : [];
         }
     },
     eventFromBackend:{
@@ -72,4 +78,29 @@ export const FrontendUrlHandler:UrlService={
     }
 }
 
-let apiKey:string|undefined=undefined;
+const API_KEY_STORAGE_KEY = "linkrandomizer.openaiApiKey";
+
+const readStoredApiKey = (): string => {
+    try {
+        return localStorage.getItem(API_KEY_STORAGE_KEY)?.trim() ?? "";
+    } catch {
+        return "";
+    }
+};
+
+let apiKey = readStoredApiKey();
+
+export const getStoredApiKey = (): string => apiKey;
+
+export const setStoredApiKey = (key: string): void => {
+    apiKey = key.trim();
+    try {
+        if (apiKey) {
+            localStorage.setItem(API_KEY_STORAGE_KEY, apiKey);
+        } else {
+            localStorage.removeItem(API_KEY_STORAGE_KEY);
+        }
+    } catch {
+        // Storage can be unavailable; the in-memory key still applies for this session.
+    }
+};

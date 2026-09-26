@@ -2,6 +2,7 @@ import { type UrlService, type GeneratedURL, type ChatMessage, type ChatHistory,
 import { shell } from "electron/common";
 import { sendToControlWindow } from "../mainBackend.js";
 import { GeneratedURLContentObtainer, ImageInClipboardObtainer, UrlInClipboardObtainer } from "../agent/content-obtainer.js";
+import { getCrawlStore } from "../storage/crawl-store.js";
 export const UrlHandler: UrlService = {
     sendToBackend: {
         openUrlInBrowser: (data: { url: string }): void => {
@@ -51,6 +52,10 @@ export const UrlHandler: UrlService = {
                 apiKey=config.default;
             }
             return Promise.resolve(apiKey);
+        },
+        async getUrlPool(data: { site: string }): Promise<string[]> {
+            const store = await getCrawlStore();
+            return store.getPool(data.site);
         }
 
     },

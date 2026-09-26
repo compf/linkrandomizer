@@ -1,10 +1,13 @@
 import { RegexWebsiteControllerDefinition } from "../models/regex-website-controller.js";
+import { InducedSchemaRecord, InduceSchemaResult } from "../models/induced-schema.js";
+import { ControllerAssistRequest, ControllerAssistResult } from "../models/controller-assist.js";
 import { unsupported } from "./abstract-service.js";
 
 export const WebsiteServiceSchema = {
     sendToBackend: {
         analyzeWebsite: (data: { controllerNames: string[]; openFilePicker?: boolean }): void => unsupported(),
         setActive: (active: boolean): void => unsupported(),
+        harvestSite: (data: { site: string }): void => unsupported(),
     },
 
     invokeFromBackend: {
@@ -16,6 +19,11 @@ export const WebsiteServiceSchema = {
         loadControllerDefinition: (
             data: { name: string },
         ): Promise<RegexWebsiteControllerDefinition | null> => unsupported() as never,
+        listCrawledSites: (): Promise<{ name: string; urlCount: number }[]> => unsupported() as never,
+        induceSchema: (data: { site: string }): Promise<InduceSchemaResult> => unsupported() as never,
+        listInducedSchemas: (): Promise<InducedSchemaRecord[]> => unsupported() as never,
+        proposeController: (data: ControllerAssistRequest): Promise<ControllerAssistResult> =>
+            unsupported() as never,
     },
 
     eventFromBackend: {
