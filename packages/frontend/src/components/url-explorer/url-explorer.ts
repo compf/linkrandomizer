@@ -88,6 +88,11 @@ export class UrlExplorerComponent implements OnInit, OnDestroy {
   allTags = signal<string[]>([]);
   selectedTags: Record<string, boolean> = {};
 
+  /** Look up a site by name across BOTH built-in and AI-induced websites. */
+  private websiteByName(name: string): Website | undefined {
+    return this.allWebsites().find((entry) => entry.name === name)?.website ?? publicWebsites[name];
+  }
+
   workingSet = signal<string[]>([]);
   visibleSlots = signal<[string | null, string | null]>([null, null]);
   focusedSlot = signal<0 | 1>(0);
@@ -224,17 +229,17 @@ export class UrlExplorerComponent implements OnInit, OnDestroy {
   }
 
   displayName(name: string): string {
-    const website = publicWebsites[name];
+    const website = this.websiteByName(name);
     return website ? websiteDisplayName(name, website) : name;
   }
 
   coverageLabel(name: string): string {
-    const website = publicWebsites[name];
+    const website = this.websiteByName(name);
     return website ? formatCoverageLabel(websiteCoverage(website)) : "";
   }
 
   publicSummary(name: string): string {
-    return publicWebsites[name]?.summary ?? "";
+    return this.websiteByName(name)?.summary ?? "";
   }
 
   markdown(text: string): string {
@@ -242,7 +247,7 @@ export class UrlExplorerComponent implements OnInit, OnDestroy {
   }
 
   supportsPeriod(name: string): boolean {
-    const website = publicWebsites[name];
+    const website = this.websiteByName(name);
     return website ? websiteSupportsPeriod(website, this.currentPeriod()) : false;
   }
 
@@ -422,7 +427,7 @@ export class UrlExplorerComponent implements OnInit, OnDestroy {
   }
 
   shuffle(name: string) {
-    const website = publicWebsites[name];
+    const website = this.websiteByName(name);
     if (!website) {
       return;
     }
@@ -485,7 +490,7 @@ export class UrlExplorerComponent implements OnInit, OnDestroy {
       return;
     }
     const name = pool[Math.floor(Math.random() * pool.length)];
-    const website = publicWebsites[name];
+    const website = this.websiteByName(name);
     const generated = website ? tryGenerateRandomURL(website, this.currentPeriod()) : null;
     if (!generated) {
       return;
@@ -744,7 +749,7 @@ export class UrlExplorerComponent implements OnInit, OnDestroy {
   }
 
   private appendToStack(name: string, count: number) {
-    const website = publicWebsites[name];
+    const website = this.websiteByName(name);
     if (!website) {
       return;
     }

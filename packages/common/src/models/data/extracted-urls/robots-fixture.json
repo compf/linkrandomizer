@@ -1,8 +1,0 @@
-{
-  "name": "http://localhost:4325/start",
-  "urlsToVisit": {},
-  "urlsToReturn": [
-    "http://localhost:4325/article/one",
-    "http://localhost:4325/article/two"
-  ]
-}

@@ -17,11 +17,13 @@ import type { WebsiteController } from '../../url-finder-type.js';
 import {
     CONTROLLER_SCRIPTS_DIR,
     controllerFromDefinition,
+    deleteControllerDefinition,
     listControllerDefinitions,
     loadControllerDefinition,
     loadControllerFromFile,
     saveControllerDefinition,
 } from '../agent/regex-controller.js';
+import { exportInducedSchemasSnapshot } from '../ai/schema-inducer.js';
 
 const finishAnalysis = () => {
     setActive(false);
@@ -130,9 +132,43 @@ export const WebsiteHandler: WebsiteService = {
         ): Promise<RegexWebsiteControllerDefinition | null> => {
             return loadControllerDefinition(data.name);
         },
+        deleteControllerDefinition: async (
+            data: { name: string },
+        ): Promise<{ ok: true } | { ok: false; error: string }> => {
+            try {
+                deleteControllerDefinition(data.name);
+                return { ok: true };
+            } catch (error) {
+                return { ok: false, error: error instanceof Error ? error.message : String(error) };
+            }
+        },
         listCrawledSites: async (): Promise<{ name: string; urlCount: number }[]> => {
             const store = await getCrawlStore();
             return store.listSites().map(({ name }) => ({ name, urlCount: store.countReturned(name) }));
+        },
+        deleteInducedSchema: async (
+            data: { site: string },
+        ): Promise<{ ok: true } | { ok: false; error: string }> => {
+            try {
+                const store = await getCrawlStore();
+                store.deleteSchema(data.site);
+                exportInducedSchemasSnapshot(store);
+                return { ok: true };
+            } catch (error) {
+                return { ok: false, error: error instanceof Error ? error.message : String(error) };
+            }
+        },
+        deleteCrawledSite: async (
+            data: { site: string },
+        ): Promise<{ ok: true } | { ok: false; error: string }> => {
+            try {
+                const store = await getCrawlStore();
+                store.deleteSite(data.site);
+                exportInducedSchemasSnapshot(store);
+                return { ok: true };
+            } catch (error) {
+                return { ok: false, error: error instanceof Error ? error.message : String(error) };
+            }
         },
         induceSchema: async (data: { site: string }): Promise<InduceSchemaResult> => {
             try {

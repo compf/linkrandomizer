@@ -85,12 +85,13 @@ export class RobotsCache {
         if (!entry) {
             entry = (async () => {
                 try {
-                    await this.scheduler.acquire(origin + "/robots.txt");
+                    // A metadata probe: throttle it, but never let a failed or
+                    // challenged robots.txt put the whole domain into cooldown.
+                    await this.scheduler.acquire(origin + "/robots.txt", { ignoreBlock: true });
                     const response = await fetch(origin + "/robots.txt", {
                         redirect: "follow",
                         signal: AbortSignal.timeout(20_000),
                     });
-                    this.scheduler.reportResult(origin + "/robots.txt", response.status);
                     if (!response.ok) {
                         return { rules: [] };
                     }

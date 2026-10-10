@@ -223,6 +223,49 @@ export class CrawlStore {
         return result;
     }
 
+    deleteSchema(site: string): void {
+        this.db.prepare("DELETE FROM schemas WHERE name = ?").run(site);
+    }
+
+    /** Remove all crawl data for a site: frontier, collected URLs, schema, and the site row. */
+    deleteSite(site: string): void {
+        this.db.transaction(() => {
+            this.db.prepare("DELETE FROM frontier WHERE site = ?").run(site);
+            this.db.prepare("DELETE FROM urls WHERE site = ?").run(site);
+            this.db.prepare("DELETE FROM schemas WHERE name = ?").run(site);
+            this.db.prepare("DELETE FROM sites WHERE name = ?").run(site);
+        })();
+        const snapshot = path.join(EXTRACTED_URLS_DIR, `${site}.json`);
+        try {
+            if (fs.existsSync(snapshot)) {
+                fs.unlinkSync(snapshot);
+            }
+        } catch (error) {
+            console.error("Failed to remove snapshot for", site, error);
+        }
+    }
+
+    /** Per-site frontier + pool counts, for the crawl summary and UI. */
+    getSiteStats(site: string): {
+        pending: number;
+        visited: number;
+        failed: number;
+        skipped: number;
+        returned: number;
+    } {
+        const rows = this.db
+            .prepare("SELECT status, COUNT(*) AS c FROM frontier WHERE site = ? GROUP BY status")
+            .all(site) as { status: string; c: number }[];
+        const byStatus = Object.fromEntries(rows.map((r) => [r.status, r.c]));
+        return {
+            pending: byStatus.pending ?? 0,
+            visited: byStatus.visited ?? 0,
+            failed: byStatus.failed ?? 0,
+            skipped: byStatus.skipped ?? 0,
+            returned: this.countReturned(site),
+        };
+    }
+
     logFetch(domain: string, status: number | null): void {
         this.db.prepare("INSERT INTO fetch_log (domain, ts, status) VALUES (?, ?, ?)").run(
             domain,

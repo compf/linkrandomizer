@@ -138,6 +138,20 @@ export const saveControllerDefinition = (
     return { jsonPath, jsPath };
 };
 
+export const deleteControllerDefinition = (name: string): void => {
+    for (const filePath of [controllerJsonPath(name), controllerJsPath(name)]) {
+        try {
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
+        } catch (error) {
+            throw new Error(
+                `Failed to delete ${filePath}: ${error instanceof Error ? error.message : String(error)}`,
+            );
+        }
+    }
+};
+
 export const loadControllerDefinition = (
     name: string,
 ): RegexWebsiteControllerDefinition | null => {

@@ -19,7 +19,16 @@ export const WebsiteServiceSchema = {
         loadControllerDefinition: (
             data: { name: string },
         ): Promise<RegexWebsiteControllerDefinition | null> => unsupported() as never,
+        deleteControllerDefinition: (
+            data: { name: string },
+        ): Promise<{ ok: true } | { ok: false; error: string }> => unsupported() as never,
         listCrawledSites: (): Promise<{ name: string; urlCount: number }[]> => unsupported() as never,
+        deleteInducedSchema: (
+            data: { site: string },
+        ): Promise<{ ok: true } | { ok: false; error: string }> => unsupported() as never,
+        deleteCrawledSite: (
+            data: { site: string },
+        ): Promise<{ ok: true } | { ok: false; error: string }> => unsupported() as never,
         induceSchema: (data: { site: string }): Promise<InduceSchemaResult> => unsupported() as never,
         listInducedSchemas: (): Promise<InducedSchemaRecord[]> => unsupported() as never,
         proposeController: (data: ControllerAssistRequest): Promise<ControllerAssistResult> =>

@@ -130,6 +130,7 @@
           </span>
         </label>
         <button type="button" class="link-btn" (click)="loadIntoForm(def)">Edit</button>
+        <button type="button" class="link-btn" (click)="deleteController(def.name)">Delete</button>
       </li>
     </ul>
   </section>
@@ -200,6 +201,16 @@
           (click)="harvest(site.name)"
           [disabled]="isAnalyzing">
           Harvest
+        </button>
+        <button
+          *ngIf="schemeFor(site.name)"
+          type="button"
+          class="link-btn"
+          (click)="deleteScheme(site.name)">
+          Delete scheme
+        </button>
+        <button type="button" class="link-btn" (click)="deleteSite(site.name)">
+          Delete data
         </button>
       </li>
     </ul>

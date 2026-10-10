@@ -28,8 +28,23 @@ export const FrontendWebsiteHandler: WebsiteService = {
         ): Promise<RegexWebsiteControllerDefinition | null> => {
             return null;
         },
+        deleteControllerDefinition: async (
+            _data: { name: string },
+        ): Promise<{ ok: true } | { ok: false; error: string }> => {
+            return { ok: false, error: "Deleting controllers needs the desktop app." };
+        },
         listCrawledSites: async (): Promise<{ name: string; urlCount: number }[]> => {
             return [];
+        },
+        deleteInducedSchema: async (
+            _data: { site: string },
+        ): Promise<{ ok: true } | { ok: false; error: string }> => {
+            return { ok: false, error: "Deleting schemes needs the desktop app." };
+        },
+        deleteCrawledSite: async (
+            _data: { site: string },
+        ): Promise<{ ok: true } | { ok: false; error: string }> => {
+            return { ok: false, error: "Deleting crawled sites needs the desktop app." };
         },
         induceSchema: async (_data: { site: string }): Promise<InduceSchemaResult> => {
             return { ok: false, error: "Schema induction needs the desktop app." };

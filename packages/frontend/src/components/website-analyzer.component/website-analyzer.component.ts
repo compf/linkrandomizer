@@ -186,6 +186,46 @@ export class WebsiteAnalyzerComponent implements OnInit {
     this.formMessage.set(`Loaded “${def.name}” into the editor.`);
   }
 
+  async deleteController(name: string) {
+    if (!confirm(`Delete controller “${name}”? This removes its JSON and JS files.`)) {
+      return;
+    }
+    const result = await window.api.invokeFromBackend.deleteControllerDefinition({ name });
+    if (result.ok === false) {
+      this.formMessage.set(result.error);
+      return;
+    }
+    delete this.selectedNames[name];
+    this.formMessage.set(`Deleted controller “${name}”.`);
+    await this.refreshSavedControllers();
+  }
+
+  async deleteScheme(site: string) {
+    if (!confirm(`Delete the AI generation scheme for “${site}”? The collected URLs are kept.`)) {
+      return;
+    }
+    const result = await window.api.invokeFromBackend.deleteInducedSchema({ site });
+    if (result.ok === false) {
+      this.schemeMessage.set(result.error);
+      return;
+    }
+    this.schemeMessage.set(`Deleted the scheme for “${site}”.`);
+    await this.refreshSchemes();
+  }
+
+  async deleteSite(site: string) {
+    if (!confirm(`Delete ALL crawl data for “${site}” (collected URLs, frontier, and scheme)? This cannot be undone.`)) {
+      return;
+    }
+    const result = await window.api.invokeFromBackend.deleteCrawledSite({ site });
+    if (result.ok === false) {
+      this.schemeMessage.set(result.error);
+      return;
+    }
+    this.schemeMessage.set(`Deleted all crawl data for “${site}”.`);
+    await this.refreshSchemes();
+  }
+
   resetForm() {
     this.draft = emptyDraft();
     this.formMessage.set('Form cleared.');

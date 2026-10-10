@@ -5,6 +5,7 @@ import { fetchViaHttp, extractLinks, looksLikeChallenge, type FetchOutcome, type
 import { collectSitemapUrls, collectFeedUrls } from "./sitemap.js";
 import { BrowserSession } from "./browser-session.js";
 import { RobotsCache } from "./robots.js";
+import { getOriginSession } from "./session-store.js";
 
 const SNAPSHOT_EVERY_PAGES = 200;
 
@@ -111,7 +112,9 @@ const fetchViaBrowser = async (
     if (!(await session.waitUntilPlaying(() => isActive))) {
         return null;
     }
-    await scheduler.acquire(url);
+    // Ignore any block cooldown: the browser is how we clear the challenge that
+    // caused it, so it must not wait the cooldown out.
+    await scheduler.acquire(url, { ignoreBlock: true });
     let status: number | null = null;
     try {
         const response = await page.goto(url, { waitUntil: "domcontentloaded" });
@@ -120,24 +123,40 @@ const fetchViaBrowser = async (
         scheduler.reportResult(url, null);
         return { url, status: null, html: null, links: [], challenge: false, needsBrowser: true, error: String(error) };
     }
-    await session.ensureControlUi();
 
-    // Let the user clear captchas/banners; poll until the page looks normal.
+    // A managed challenge auto-clears in a real browser within a few seconds.
+    // Do NOT touch the DOM here — injecting anything breaks the challenge. Just
+    // poll the content until the challenge markers are gone (or the present user
+    // solves an interactive one). Up to 40s for slower/interactive challenges.
+    let html = await page.content();
+    for (let waited = 0; waited < 40_000 && isActive && looksLikeChallenge(status, html); waited += 1500) {
+        await page.waitForTimeout(1500);
+        html = await page.content();
+        status = null; // status was the challenge response; judge by content now.
+    }
+
+    // Let a site-specific requireUserAttention pattern pause us (banners, etc.).
     while (isActive && (await state.controller.requireUserAttention(page))) {
         await page.waitForTimeout(500);
-        await session.ensureControlUi();
     }
     if (!isActive) {
         return null;
     }
 
-    const html = await page.content();
-    const challenge = looksLikeChallenge(status, html);
-    scheduler.reportResult(url, status, challenge);
-    if (challenge) {
-        return { url, status, html, links: [], challenge, needsBrowser: true };
-    }
+    html = await page.content();
     const links = extractLinks(html, page.url());
+    // Only treat it as an unsolved challenge when the markers persist AND no
+    // usable links came back — a real page that merely mentions a marker word
+    // (or embeds a Cloudflare script) must not be discarded.
+    const blocked = looksLikeChallenge(status, html) && links.length === 0;
+    scheduler.reportResult(url, status, blocked);
+    if (blocked) {
+        return { url, status, html, links: [], challenge: true, needsBrowser: true };
+    }
+    // Cleared: now it is safe to (re)inject the overlay and capture the session
+    // so the HTTP tier can reuse the earned cookies.
+    await session.ensureControlUi();
+    await session.captureSession(url);
     return { url, status, html, links, challenge: false, needsBrowser: true };
 };
 
@@ -233,6 +252,13 @@ export const runCrawl = async (
                 }
             }
 
+            // After the browser cleared a challenge it captured the session's
+            // cookies; drop back to the fast HTTP tier and let it re-escalate
+            // only if the session lapses.
+            if (state.needsBrowser && outcome && !outcome.challenge && !outcome.error && getOriginSession(url)) {
+                state.needsBrowser = false;
+            }
+
             if (outcome === null) {
                 // Crawl was stopped while waiting on the browser tier.
                 store.reopenFrontierUrl(state.site, url, depth);
@@ -256,6 +282,16 @@ export const runCrawl = async (
         for (const state of states) {
             try {
                 store.exportSnapshot(state.site);
+                const stats = store.getSiteStats(state.site);
+                console.log(
+                    `Crawl summary for ${state.site}: collected ${stats.returned} URLs; ` +
+                        `pages visited ${stats.visited}, pending ${stats.pending}, failed ${stats.failed}, skipped ${stats.skipped}.`,
+                );
+                if (stats.returned === 0 && stats.visited > 0) {
+                    console.warn(
+                        `${state.site}: visited pages but collected nothing — canBeReturned may not match the links on those pages.`,
+                    );
+                }
             } catch (error) {
                 console.error("Failed to export snapshot for", state.site, error);
             }

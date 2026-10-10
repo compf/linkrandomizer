@@ -1,4 +1,14 @@
 import type { DomainScheduler } from "./domain-scheduler.js";
+import { getOriginSession } from "./session-store.js";
+
+/**
+ * A current, realistic desktop-Chrome User-Agent. Many sites reject requests
+ * that send no UA at all; sending a truthful, common browser UA (this really is
+ * the Chromium the app embeds) is ordinary polite-client behaviour, not a forged
+ * fingerprint. Overridden per-origin by a captured browser session when present.
+ */
+export const DEFAULT_USER_AGENT =
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36";
 
 export type FetchOutcome = {
     url: string;
@@ -75,12 +85,18 @@ const looksLikeJsShell = (html: string, linkCount: number): boolean => {
 export type HttpFetcher = (url: string) => Promise<{ status: number; html: string | null; finalUrl: string }>;
 
 export const defaultHttpFetcher: HttpFetcher = async (url) => {
+    const session = getOriginSession(url);
+    const headers: Record<string, string> = {
+        "User-Agent": session?.userAgent ?? DEFAULT_USER_AGENT,
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9,de;q=0.8",
+    };
+    if (session?.cookieHeader) {
+        headers["Cookie"] = session.cookieHeader;
+    }
     const response = await fetch(url, {
         redirect: "follow",
-        headers: {
-            Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "Accept-Language": "en;q=0.9,de;q=0.8",
-        },
+        headers,
         signal: AbortSignal.timeout(30_000),
     });
     const contentType = response.headers.get("content-type") ?? "";
@@ -101,14 +117,17 @@ export const fetchViaHttp = async (
     await scheduler.acquire(url);
     try {
         const { status, html, finalUrl } = await fetcher(url);
-        const challenge = looksLikeChallenge(status, html);
+        const links = html ? extractLinks(html, finalUrl) : [];
+        // A real page that merely embeds a Cloudflare script (or mentions a
+        // marker word) still yields links; only treat it as a challenge when the
+        // markers are present AND nothing usable came back.
+        const challenge = looksLikeChallenge(status, html) && links.length === 0;
         scheduler.reportResult(url, status, challenge);
-        const links = html && !challenge ? extractLinks(html, finalUrl) : [];
         return {
             url,
             status,
             html,
-            links,
+            links: challenge ? [] : links,
             challenge,
             needsBrowser: !challenge && html !== null && looksLikeJsShell(html, links.length),
         };

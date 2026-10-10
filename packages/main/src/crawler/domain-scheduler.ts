@@ -69,11 +69,17 @@ export class DomainScheduler {
         return this.stateFor(domainOf(url)).blockedUntil > Date.now();
     }
 
-    /** Wait for the domain's slot, then claim it. */
-    async acquire(url: string): Promise<void> {
+    /**
+     * Wait for the domain's slot, then claim it. The browser tier passes
+     * `ignoreBlock` because it is the sanctioned way through a challenge — it
+     * must not be held back by the cooldown that the challenge itself caused.
+     */
+    async acquire(url: string, { ignoreBlock = false }: { ignoreBlock?: boolean } = {}): Promise<void> {
         const domain = domainOf(url);
         for (;;) {
-            const wait = this.waitTimeFor(url);
+            const state = this.stateFor(domain);
+            const until = ignoreBlock ? state.nextAllowedAt : Math.max(state.nextAllowedAt, state.blockedUntil);
+            const wait = Math.max(0, until - Date.now());
             if (wait <= 0) {
                 break;
             }

@@ -8,7 +8,9 @@ import type {
     RegexWebsiteControllerDefinition,
 } from "@linkrandomizer/common";
 import { DomainScheduler } from "../crawler/domain-scheduler.js";
-import { fetchViaHttp } from "../crawler/fetch-pipeline.js";
+import { fetchViaHttp, extractLinks, looksLikeChallenge } from "../crawler/fetch-pipeline.js";
+import { launchCrawlContext } from "../crawler/browser-session.js";
+import { setOriginSession } from "../crawler/session-store.js";
 
 const ProposalReply = z.object({
     reasoning: z.string().describe("Short explanation of the proposal, aimed at the user"),
@@ -120,31 +122,94 @@ const sampleLinks = (links: string[], max = 120): string[] => {
     return sampled.slice(0, max);
 };
 
+type RawPage = { html: string; links: string[]; finalUrl: string };
+
+/**
+ * Load the page in the real, visible browser so bot-protected sites (the HTTP
+ * tier gets a challenge) still yield link evidence. Waits for a managed
+ * challenge to auto-clear — and, since the user is present when the assistant
+ * runs, gives them a window to solve an interactive one — then captures the
+ * session so a later crawl of the same origin starts already cleared.
+ */
+const gatherViaBrowser = async (startUrl: string): Promise<RawPage | null> => {
+    const context = await launchCrawlContext();
+    try {
+        const page = context.pages()[0] ?? (await context.newPage());
+        await page.goto(startUrl, { waitUntil: "domcontentloaded" });
+        let html = await page.content();
+        // Up to 45s: enough for a managed challenge to auto-clear or for the
+        // present user to solve an interactive one.
+        for (let waited = 0; waited < 45_000 && looksLikeChallenge(null, html); waited += 1500) {
+            await page.waitForTimeout(1500);
+            html = await page.content();
+        }
+        const finalUrl = page.url();
+        const links = extractLinks(html, finalUrl);
+        try {
+            const cookies = await context.cookies(startUrl);
+            const userAgent = await page.evaluate(() => navigator.userAgent);
+            setOriginSession(
+                startUrl,
+                userAgent,
+                cookies.map((c) => ({ name: c.name, value: c.value })),
+            );
+        } catch (error) {
+            console.error("Failed to capture session during assist", error);
+        }
+        return { html, links, finalUrl };
+    } finally {
+        await context.close().catch(() => undefined);
+    }
+};
+
 const gatherEvidence = async (startUrl: string): Promise<PageEvidence> => {
     const cached = evidenceCache.get(startUrl);
     if (cached) {
         return cached;
     }
     const outcome = await fetchViaHttp(startUrl, assistScheduler);
+    let html = outcome.html;
+    let links = outcome.links;
+    let finalUrl = startUrl;
     let fetchNote = "";
-    if (outcome.error) {
-        fetchNote = `Fetching the page failed: ${outcome.error}`;
-    } else if (outcome.challenge) {
-        fetchNote = "The page served a bot-protection/challenge response; link evidence may be incomplete.";
-    } else if (outcome.needsBrowser) {
-        fetchNote = "The page looks like a JavaScript-rendered shell; link evidence may be incomplete.";
+    let cacheable = !outcome.error;
+
+    // The HTTP tier was blocked or returned nothing useful: fall back to the
+    // real browser, which passes managed challenges and renders JS shells.
+    if (outcome.error || outcome.challenge || outcome.needsBrowser || links.length === 0) {
+        let browserResult: RawPage | null = null;
+        try {
+            browserResult = await gatherViaBrowser(startUrl);
+        } catch (error) {
+            console.error("Browser-tier evidence gathering failed", error);
+            cacheable = false;
+        }
+        if (browserResult && browserResult.links.length > 0) {
+            html = browserResult.html;
+            links = browserResult.links;
+            finalUrl = browserResult.finalUrl;
+            fetchNote = "The site is behind bot protection or JS-rendered; evidence was loaded via the browser.";
+        } else if (outcome.challenge || (browserResult && looksLikeChallenge(null, browserResult.html))) {
+            fetchNote = "The page is behind a challenge that could not be cleared automatically. Solve it in the browser window and try again.";
+            cacheable = false;
+        } else if (outcome.error) {
+            fetchNote = `Fetching the page failed: ${outcome.error}`;
+        } else if (outcome.needsBrowser) {
+            fetchNote = "The page looks like a JavaScript-rendered shell; link evidence may be incomplete.";
+        }
     }
-    const title = outcome.html?.match(/<title[^>]*>([^<]*)<\/title>/i)?.[1]?.trim() ?? "";
+
+    const title = html?.match(/<title[^>]*>([^<]*)<\/title>/i)?.[1]?.trim() ?? "";
     const origin = new URL(startUrl).origin;
     const evidence: PageEvidence = {
         startUrl,
         title,
-        links: sampleLinks(outcome.links),
-        feeds: outcome.html ? discoverFeeds(outcome.html, startUrl) : [],
+        links: sampleLinks(links),
+        feeds: html ? discoverFeeds(html, finalUrl) : [],
         sitemaps: await discoverSitemaps(origin),
         fetchNote,
     };
-    if (!outcome.error) {
+    if (cacheable && links.length > 0) {
         evidenceCache.set(startUrl, evidence);
     }
     return evidence;

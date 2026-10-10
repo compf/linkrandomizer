@@ -41,6 +41,42 @@
     "verifiedAt": 1790445032883
   },
   {
+    "site": "justia_cali_cases_2019",
+    "kind": "hybrid",
+    "website": null,
+    "indexWebsite": {
+      "version": 1,
+      "displayName": "Justia California Court of Appeal Cases Index",
+      "summary": "Index pages listing California Court of Appeal cases by year and page number.",
+      "tags": [
+        "law",
+        "court cases",
+        "California"
+      ],
+      "schema": [
+        "https://law.justia.com/cases/california/court-of-appeal/2019/?page=",
+        {
+          "variable": "page",
+          "padding": null
+        }
+      ],
+      "variables": [
+        {
+          "name": "randomFromRange",
+          "min": 1,
+          "maxExclusive": 4,
+          "variableName": "page"
+        }
+      ],
+      "downloadType": "downloadFromGeneratedURL"
+    },
+    "leafUrlRegex": "^https://law\\.justia\\.com/cases/california/court-of-appeal/2019/[a-z]\\d{6}[am]?\\.html$",
+    "hitRate": 0,
+    "verifiedSamples": 2,
+    "reasoning": "The URLs themselves contain unpredictable parts which are the case identifiers (e.g., 'a139352'), indicating these are not fully generatable URLs. However, the crawler found these URLs on predictable index/archive pages of the form 'https://law.justia.com/cases/california/court-of-appeal/2019/?page={page}', where the page number is incremented sequentially. This makes the site 'hybrid' as index pages follow a scheme, but the leaf URLs do not.",
+    "verifiedAt": 1790452435568
+  },
+  {
     "site": "trump_legal_cases",
     "kind": "hybrid",
     "website": null,
