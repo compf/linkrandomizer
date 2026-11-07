@@ -99,7 +99,7 @@ export class UrlExplorerComponent implements OnInit, OnDestroy {
   stacks = signal<Record<string, GeneratedURL[]>>({});
   selected = signal<SelectedCard | null>(null);
 
-  periodMode: PeriodMode = "yearMonth";
+  periodMode: PeriodMode = "any";
   periodYear = 1968;
   periodMonth = 11;
   rangeStart: Date | null = jsDateFromCalendarDay({ year: 1968, month: 11, day: 1 });
@@ -322,6 +322,35 @@ export class UrlExplorerComponent implements OnInit, OnDestroy {
     this.selectedTags[tag] = checked;
   }
 
+  canOpenMoreChips(): boolean {
+    return this.railWebsites().some((entry) => this.supportsPeriod(entry.name) && !this.isInWorkingSet(entry.name));
+  }
+
+  openAllAsChips() {
+    const names = this.railWebsites()
+      .map((entry) => entry.name)
+      .filter((name) => this.supportsPeriod(name) && !this.isInWorkingSet(name));
+    if (names.length === 0) {
+      return;
+    }
+    this.workingSet.update((set) => [...set, ...names]);
+    const slots = [...this.visibleSlots()] as [string | null, string | null];
+    let filled = false;
+    for (const name of names) {
+      const emptyIndex = slots.findIndex((slot) => !slot);
+      if (emptyIndex < 0) {
+        break;
+      }
+      slots[emptyIndex] = name;
+      this.focusedSlot.set(emptyIndex as 0 | 1);
+      filled = true;
+    }
+    if (filled) {
+      this.visibleSlots.set(slots);
+      this.refillVisibleColumns();
+    }
+  }
+
   toggleWorkingSet(name: string) {
     if (this.isInWorkingSet(name)) {
       this.removeFromWorkingSet(name);
@@ -481,28 +510,29 @@ export class UrlExplorerComponent implements OnInit, OnDestroy {
     }
   }
 
-  async feelingLucky() {
-    const candidates = this.visibleColumns().filter((name) => this.supportsPeriod(name));
-    const pool = candidates.length > 0
-      ? candidates
-      : this.workingSet().filter((name) => this.supportsPeriod(name));
-    if (pool.length === 0) {
+  feelingLucky() {
+    const pool = this.workingSet().filter((name) => this.supportsPeriod(name));
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const swap = pool[i];
+      pool[i] = pool[j];
+      pool[j] = swap;
+    }
+    const period = this.currentPeriod();
+    for (const name of pool) {
+      const website = this.websiteByName(name);
+      const generated = website ? tryGenerateRandomURL(website, period) : null;
+      if (!generated) {
+        continue;
+      }
+      this.stacks.update((stacks) => ({
+        ...stacks,
+        [name]: [generated, ...(stacks[name] ?? [])],
+      }));
+      this.activateChip(name);
+      this.selectCard(name, 0);
       return;
     }
-    const name = pool[Math.floor(Math.random() * pool.length)];
-    const website = this.websiteByName(name);
-    const generated = website ? tryGenerateRandomURL(website, this.currentPeriod()) : null;
-    if (!generated) {
-      return;
-    }
-    this.activateChip(name);
-    this.stacks.update((stacks) => ({
-      ...stacks,
-      [name]: [generated, ...(stacks[name] ?? [])],
-    }));
-    this.selectCard(name, 0);
-    this.openUrl(generated.url);
-    await this.briefThisUrl();
   }
 
   async briefThisUrl() {

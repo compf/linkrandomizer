@@ -54,6 +54,14 @@
   <aside class="rail">
     <h3 class="rail-title">Websites</h3>
     <p class="rail-help">Add sites to the working set. Unavailable sites do not cover the selected period.</p>
+    <button
+      mat-stroked-button
+      type="button"
+      class="open-all-btn"
+      (click)="openAllAsChips()"
+      [disabled]="!canOpenMoreChips()">
+      Open all websites
+    </button>
     <div class="tag-list">
       @for (tag of allTags(); track tag) {
         <mat-checkbox [checked]="selectedTags[tag]" (change)="toggleTag(tag, $event.checked)">

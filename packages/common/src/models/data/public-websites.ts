@@ -928,6 +928,60 @@ export const publicWebsites: Record<string, Website> = {
       },
     ],
   },
+  "arxiv":{
+    displayName: "Arxiv",
+    summary: "A random Arxiv paper",
+    schema: [
+        "https://arxiv.org/pdf/",
+        { variable: "year", padding: 2 },
+        "",
+        { variable: "month", padding: 2 },
+        ".",
+        { variable: "issue", padding: 5 },
+        ".pdf",
+    ],
+
+    downloadType: "downloadFromGeneratedURL",
+    tags: ["science", "english"],
+    variables: [
+      {
+        name: "randomFromRange",
+        variableName: "year",
+        min: 7,
+        maxExclusive: 27,
+      },
+      {
+        name: "randomFromRange",
+        variableName: "month",
+        min: 1,
+        maxExclusive: 13,
+      },
+      {
+        name: "randomFromRange",
+        variableName: "issue",
+        min: 1,
+        maxExclusive: 10000,
+      },
+    ],
+  },
+  "Zeitpunkt nrw":{
+    displayName: "Zeitpunkt NRW",
+    summary: "A random Zeitpunkt NRW paper",
+    schema: [
+        "https://zeitpunkt.nrw/ulbd/periodical/zoom/",
+        { variable: "issue", padding: null },
+    ],
+    downloadType: "downloadFromGeneratedURL",
+    tags: ["newspaper", "german"],
+    variables: [
+      {
+        name: "randomFromRange",
+        variableName: "issue",
+        min: 800,
+        maxExclusive: 16000009,
+      },
+    ],
+  },
 }
 
 const urlsToBeExtracted:(keyof typeof publicWebsites)[]=[
