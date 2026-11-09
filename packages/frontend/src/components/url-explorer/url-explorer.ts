@@ -203,13 +203,7 @@ export class UrlExplorerComponent implements OnInit, OnDestroy {
       return { year: this.periodYear };
     }
     if (this.periodMode === "range") {
-      if (!this.rangeStart || !this.rangeEnd) {
-        return undefined;
-      }
-      return {
-        start: calendarDayFromJsDate(this.rangeStart),
-        end: calendarDayFromJsDate(this.rangeEnd),
-      };
+      return dateRangePeriod(this.rangeStart, this.rangeEnd);
     }
     return { year: this.periodYear, month: this.periodMonth };
   }
@@ -419,12 +413,6 @@ export class UrlExplorerComponent implements OnInit, OnDestroy {
   }
 
   onPeriodChange() {
-    if (this.periodMode === "range") {
-      this.ensureRangeDates();
-      if (!this.rangeStart || !this.rangeEnd) {
-        return;
-      }
-    }
     const slots = this.visibleSlots().map((name) =>
       name && this.supportsPeriod(name) ? name : null,
     ) as [string | null, string | null];
@@ -445,9 +433,6 @@ export class UrlExplorerComponent implements OnInit, OnDestroy {
   }
 
   onRangeChange() {
-    if (!this.rangeStart || !this.rangeEnd) {
-      return;
-    }
     this.onPeriodChange();
   }
 
@@ -809,19 +794,6 @@ export class UrlExplorerComponent implements OnInit, OnDestroy {
     this.briefingRequestId += 1;
   }
 
-  private ensureRangeDates() {
-    if (!this.rangeStart) {
-      this.rangeStart = jsDateFromCalendarDay({
-        year: this.periodYear,
-        month: this.periodMonth,
-        day: 1,
-      });
-    }
-    if (!this.rangeEnd) {
-      this.rangeEnd = jsDateFromCalendarDay({ year: 1969, month: 9, day: 30 });
-    }
-  }
-
   private flushNotes() {
     if (this.noteTimer !== undefined) {
       clearTimeout(this.noteTimer);
@@ -920,3 +892,17 @@ export class UrlExplorerComponent implements OnInit, OnDestroy {
     }
   }
 }
+
+const dateRangePeriod = (start: Date | null, end: Date | null): DatePeriod | undefined => {
+  if (!start && !end) {
+    return undefined;
+  }
+  const period: DatePeriod = {};
+  if (start) {
+    period.start = calendarDayFromJsDate(start);
+  }
+  if (end) {
+    period.end = calendarDayFromJsDate(end);
+  }
+  return period;
+};

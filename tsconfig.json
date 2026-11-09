@@ -39,6 +39,7 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "auto",
     "skipLibCheck": true,
+    "noEmit": true,
   },
   "include": ["packages/main"]
 }

@@ -2,6 +2,7 @@ import { WebsiteServiceSchema } from "./website-service.ts.js";
 import { UrlServiceSchema } from "./url-service.js";
 import { TaskServiceSchema } from "./task-service.js";
 import { AnnotationServiceSchema } from "./annotation-service.js";
+import { YoutubeServiceSchema } from "./youtube-service.js";
 export const unsupported=()=>{
 	throw new Error();
 }
@@ -9,21 +10,24 @@ export const  sendToBackend={
 	...WebsiteServiceSchema.sendToBackend,
 	...UrlServiceSchema.sendToBackend,
 	...TaskServiceSchema.sendToBackend,
-	...AnnotationServiceSchema.sendToBackend
+	...AnnotationServiceSchema.sendToBackend,
+	...YoutubeServiceSchema.sendToBackend
 }
 
 export const EventFromBackend={
 	...WebsiteServiceSchema.eventFromBackend,
 	...UrlServiceSchema.eventFromBackend,
 	...TaskServiceSchema.eventFromBackend,
-	...AnnotationServiceSchema.eventFromBackend
+	...AnnotationServiceSchema.eventFromBackend,
+	...YoutubeServiceSchema.eventFromBackend
 }
 
 export const InvokeFromBackend={
 	...WebsiteServiceSchema.invokeFromBackend,
 	...UrlServiceSchema.invokeFromBackend,
 	...TaskServiceSchema.invokeFromBackend,
-	...AnnotationServiceSchema.invokeFromBackend
+	...AnnotationServiceSchema.invokeFromBackend,
+	...YoutubeServiceSchema.invokeFromBackend
 }
 
 export const ElectronServiceScheme={

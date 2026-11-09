@@ -15,6 +15,8 @@ import { FrontendAnnotationHandler } from './frontend-handler/frontend-annotatio
 import { FrontendService } from './frontend-handler/frontend-service';
 import { RandomFactsComponent } from './components/random-facts/random-facts';
 import { WeeklyTasksComponent } from './components/weekly-tasks/weekly-tasks';
+import { YoutubeRandomizerComponent } from './components/youtube-randomizer/youtube-randomizer';
+import { FrontendYoutubeHandler } from './frontend-handler/frontend-youtube-handler';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
@@ -29,19 +31,22 @@ if(window.isElectron){
       ...FrontendUrlHandler.invokeFromBackend,
       ...FrontendWebsiteHandler.invokeFromBackend,
       ...FrontendTaskHandler.invokeFromBackend,
-      ...FrontendAnnotationHandler.invokeFromBackend
+      ...FrontendAnnotationHandler.invokeFromBackend,
+      ...FrontendYoutubeHandler.invokeFromBackend
     },
     eventFromBackend:{
       ...FrontendUrlHandler.eventFromBackend,
       ...FrontendWebsiteHandler.eventFromBackend,
       ...FrontendTaskHandler.eventFromBackend,
-      ...FrontendAnnotationHandler.eventFromBackend
+      ...FrontendAnnotationHandler.eventFromBackend,
+      ...FrontendYoutubeHandler.eventFromBackend
     },
     sendToBackend:{
       ...FrontendUrlHandler.sendToBackend,
       ...FrontendWebsiteHandler.sendToBackend,
       ...FrontendTaskHandler.sendToBackend,
-      ...FrontendAnnotationHandler.sendToBackend
+      ...FrontendAnnotationHandler.sendToBackend,
+      ...FrontendYoutubeHandler.sendToBackend
     }
   }
   window.api=service;
@@ -69,6 +74,7 @@ if(window.isElectron){
     WebsiteAnalyzerComponent,
     RandomFactsComponent,
     WeeklyTasksComponent,
+    YoutubeRandomizerComponent,
   ]
 })
 class App implements OnInit {

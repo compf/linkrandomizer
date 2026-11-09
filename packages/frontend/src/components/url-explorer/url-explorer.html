@@ -35,8 +35,8 @@
           <mat-form-field appearance="outline" subscriptSizing="dynamic" class="period-range-field">
             <mat-label>From / to</mat-label>
             <mat-date-range-input [rangePicker]="rangePicker" [min]="pickerMinDate" [max]="pickerMaxDate">
-              <input matStartDate [(ngModel)]="rangeStart" placeholder="Start" (dateChange)="onRangeChange()" />
-              <input matEndDate [(ngModel)]="rangeEnd" placeholder="End" (dateChange)="onRangeChange()" />
+              <input matStartDate [(ngModel)]="rangeStart" placeholder="From" (dateChange)="onRangeChange()" />
+              <input matEndDate [(ngModel)]="rangeEnd" placeholder="To" (dateChange)="onRangeChange()" />
             </mat-date-range-input>
             <mat-datepicker-toggle matIconSuffix [for]="rangePicker"></mat-datepicker-toggle>
             <mat-date-range-picker #rangePicker startView="multi-year" [startAt]="rangeStart"></mat-date-range-picker>

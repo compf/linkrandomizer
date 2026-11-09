@@ -2,6 +2,7 @@ export * from "./apis/abstract-service.js";
 export * from "./apis/website-service.ts.js"
 export * from "./apis/task-service.js"
 export * from "./apis/annotation-service.js"
+export * from "./apis/youtube-service.js"
 export * from "./models/website_schemas.js";
 export * from "./models/date-period.js";
 export * from "./models/url-period.js";
@@ -16,6 +17,7 @@ export * from "./models/url-grouper.js"
 export * from "./models/data/public-websites.js"
 export * from "./models/data/tasks.js"
 export * from "./models/weekly-tasks.js"
+export * from "./models/youtube.js"
 export * from "./ai/explain-url.js"
 export * from "./ai/ai-agent.js"
 export * from "./ai/period-briefing.js"

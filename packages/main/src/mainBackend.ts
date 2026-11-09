@@ -1,3 +1,4 @@
+import type { EventFromBackendType } from '@linkrandomizer/common';
 import { app, BrowserWindow, ipcMain, Menu } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -5,6 +6,7 @@ import { WebsiteHandler } from './handlers/website-handler.js';
 import { UrlHandler } from './handlers/url-handler.js';
 import { TaskHandler } from './handlers/task-handler.js';
 import { AnnotationHandler } from './handlers/annotation-handler.js';
+import { YoutubeHandler } from './handlers/youtube-handler.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 let controlWindow: BrowserWindow|undefined=undefined
@@ -13,13 +15,15 @@ const initIPC=()=>{
         ...WebsiteHandler.sendToBackend,
         ...UrlHandler.sendToBackend,
         ...TaskHandler.sendToBackend,
-        ...AnnotationHandler.sendToBackend
+        ...AnnotationHandler.sendToBackend,
+        ...YoutubeHandler.sendToBackend
     }
     const invokeFromBackend={
         ...WebsiteHandler.invokeFromBackend,
         ...UrlHandler.invokeFromBackend,
         ...TaskHandler.invokeFromBackend,
-        ...AnnotationHandler.invokeFromBackend
+        ...AnnotationHandler.invokeFromBackend,
+        ...YoutubeHandler.invokeFromBackend
     }
 
     console.log("sendToBackend keys:", Object.keys(sendToBackend));

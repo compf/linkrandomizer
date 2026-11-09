@@ -24,7 +24,8 @@ const EventFromBackendServices:Record<keyof EventFromBackendType,null>={
 	randomUrlsGenerated:null,
 	webSiteAnalysisStateChanged:null,
 	webSiteAnalysisFinished:null,
-	onContentLoaded:null
+	onContentLoaded:null,
+	youtubeFetchProgress:null
 }
 
 const InvokeFromBackendServices:Record<keyof InvokeFromBackendType,null>={
@@ -45,7 +46,11 @@ const InvokeFromBackendServices:Record<keyof InvokeFromBackendType,null>={
 	loadTaskCompletions:null,
 	saveTaskCompletions:null,
 	loadUrlAnnotations:null,
-	saveUrlAnnotations:null
+	saveUrlAnnotations:null,
+	loadYoutubeLibrary:null,
+	saveYoutubeLibrary:null,
+	fetchYoutubeSource:null,
+	exportYoutubeLibrary:null
 }
 const  sendToBackend=Object.keys(sendToBackendServices).map((it)=>{
 	return [it,(data:any)=>{

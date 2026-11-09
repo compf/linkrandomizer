@@ -1,0 +1,206 @@
+<section class="youtube">
+  <header class="youtube-header">
+    <h1>YouTube</h1>
+    <p class="subtitle">
+      Paste a channel or playlist URL, then pick a random video. The desktop app downloads the
+      catalog and keeps it after you close the app. Export the file to use the same list in the browser.
+    </p>
+  </header>
+
+  <form class="load-row" (ngSubmit)="loadCatalog()">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="url-field">
+      <mat-label>Channel or playlist URL</mat-label>
+      <input
+        matInput
+        name="youtubeUrl"
+        [(ngModel)]="urlInput"
+        [disabled]="loading()"
+        placeholder="https://www.youtube.com/@channel or a playlist link"
+        autocomplete="off"
+        spellcheck="false" />
+    </mat-form-field>
+    <button mat-flat-button color="primary" type="submit" [disabled]="!canLoad()">
+      <mat-icon>download</mat-icon>
+      Load videos
+    </button>
+  </form>
+
+  @if (!isElectron) {
+    <p class="hint">This browser can’t download YouTube catalogs. Import a library exported from the desktop app, then pick from the saved list.</p>
+  }
+
+  @if (loading()) {
+    <p class="status">{{ progress() || "Loading…" }}</p>
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  }
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+  @if (notice()) {
+    <p class="notice">{{ notice() }}</p>
+  }
+
+  <div class="layout">
+    <aside class="sources">
+      <div class="sources-header">
+        <h2>Saved</h2>
+        <div class="transfer">
+          <button mat-stroked-button type="button" (click)="exportLibrary()" [disabled]="library().sources.length === 0">
+            Export
+          </button>
+          <button mat-stroked-button type="button" (click)="importInput.click()">
+            Import
+          </button>
+          <input #importInput type="file" accept="application/json,.json" hidden (change)="onImport($event)" />
+        </div>
+      </div>
+
+      @if (library().sources.length === 0) {
+        <p class="hint">No catalogs saved on this computer yet.</p>
+      } @else {
+        <ul class="source-list">
+          @for (source of library().sources; track source.id) {
+            <li class="source" [class.source--selected]="source.id === selected()?.id">
+              <button type="button" class="source-main" (click)="select(source.id)">
+                <span class="source-title">{{ source.title }}</span>
+                <span class="source-meta">
+                  {{ source.kind === "channel" ? "Channel" : "Playlist" }}
+                  · {{ source.videos.length }} videos
+                </span>
+                @if (fetchedLabel(source)) {
+                  <span class="source-meta">{{ fetchedLabel(source) }}</span>
+                }
+              </button>
+              <button mat-icon-button type="button" (click)="remove(source)" [attr.aria-label]="'Remove ' + source.title">
+                <mat-icon>close</mat-icon>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </aside>
+
+    <section class="picker">
+      @if (selected(); as source) {
+        <header class="picker-header">
+          <div>
+            <h2>{{ source.title }}</h2>
+            <p class="source-meta">
+              {{ source.videos.length }} videos
+              @if (undatedCount(source) > 0) {
+                · {{ undatedCount(source) }} without a date
+              }
+            </p>
+          </div>
+          @if (isElectron) {
+            <button mat-stroked-button type="button" (click)="refreshSelected()" [disabled]="loading()">
+              <mat-icon>refresh</mat-icon>
+              Refresh
+            </button>
+          }
+        </header>
+
+        <fieldset class="period">
+          <legend>Published</legend>
+          <label>
+            <input type="radio" name="youtubePeriodMode" value="any" [(ngModel)]="periodMode" (ngModelChange)="onPeriodChange()" />
+            Any time
+          </label>
+          <label>
+            <input type="radio" name="youtubePeriodMode" value="year" [(ngModel)]="periodMode" (ngModelChange)="onPeriodChange()" />
+            Year
+          </label>
+          <label>
+            <input type="radio" name="youtubePeriodMode" value="yearMonth" [(ngModel)]="periodMode" (ngModelChange)="onPeriodChange()" />
+            Year + month
+          </label>
+          <label>
+            <input type="radio" name="youtubePeriodMode" value="range" [(ngModel)]="periodMode" (ngModelChange)="onPeriodChange()" />
+            Date range
+          </label>
+          @if (periodMode === "year" || periodMode === "yearMonth") {
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="period-field">
+              <mat-label>Year</mat-label>
+              <input matInput type="number" min="2005" max="2100" [(ngModel)]="periodYear" (change)="onPeriodChange()" />
+            </mat-form-field>
+          }
+          @if (periodMode === "yearMonth") {
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="period-field">
+              <mat-label>Month</mat-label>
+              <input matInput type="number" min="1" max="12" [(ngModel)]="periodMonth" (change)="onPeriodChange()" />
+            </mat-form-field>
+          }
+          @if (periodMode === "range") {
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="period-range-field">
+              <mat-label>From / to</mat-label>
+              <mat-date-range-input [rangePicker]="rangePicker" [min]="pickerMinDate" [max]="pickerMaxDate">
+                <input matStartDate [(ngModel)]="rangeStart" placeholder="From" (dateChange)="onPeriodChange()" />
+                <input matEndDate [(ngModel)]="rangeEnd" placeholder="To" (dateChange)="onPeriodChange()" />
+              </mat-date-range-input>
+              <mat-datepicker-toggle matIconSuffix [for]="rangePicker"></mat-datepicker-toggle>
+              <mat-date-range-picker #rangePicker></mat-date-range-picker>
+            </mat-form-field>
+          }
+          <span class="period-label">{{ periodLabel() }}</span>
+        </fieldset>
+
+        <div class="pick-row">
+          <button mat-flat-button color="primary" type="button" (click)="pickRandom()" [disabled]="filtered().length === 0">
+            <mat-icon>casino</mat-icon>
+            {{ picked() ? "Pick another" : "Pick a random video" }}
+          </button>
+          <span class="source-meta">{{ filtered().length }} in this period</span>
+        </div>
+
+        @if (picked(); as video) {
+          <article class="result">
+            <h3>{{ video.title }}</h3>
+            @if (video.published) {
+              <p class="source-meta">{{ publishedLabel(video) }}</p>
+            }
+            <p class="result-url">{{ video.url }}</p>
+            <div class="result-actions">
+              <button mat-flat-button color="primary" type="button" (click)="openPicked()">
+                <mat-icon>open_in_new</mat-icon>
+                Open
+              </button>
+              <button mat-stroked-button type="button" (click)="copyPicked()">
+                <mat-icon>content_copy</mat-icon>
+                {{ copied() ? "Copied" : "Copy URL" }}
+              </button>
+            </div>
+          </article>
+        }
+
+        @if (filterActive()) {
+          <section class="matches">
+            <h3>Matching videos</h3>
+            @if (filtered().length === 0) {
+              <p class="hint">No videos in this period.</p>
+            } @else {
+              <ul class="match-list">
+                @for (video of filtered(); track video.id) {
+                  <li class="match" [class.match--picked]="video.id === picked()?.id">
+                    <div class="match-text">
+                      <span class="source-title">{{ video.title }}</span>
+                      @if (video.published) {
+                        <span class="source-meta">{{ publishedLabel(video) }}</span>
+                      }
+                      <span class="match-url">{{ video.url }}</span>
+                    </div>
+                    <button mat-stroked-button type="button" (click)="openVideo(video)">
+                      <mat-icon>open_in_new</mat-icon>
+                      Open
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
+          </section>
+        }
+      } @else {
+        <p class="hint">Load a channel or playlist, or import a library, to pick a video.</p>
+      }
+    </section>
+  </div>
+</section>

@@ -99,6 +99,9 @@ export const fillEnd = (date: ExtractedDate): CalendarDay | undefined => {
     return { year: date.year, month, day };
 };
 
+const OPEN_START: CalendarDay = { year: 1, month: 1, day: 1 };
+const OPEN_END: CalendarDay = { year: 9999, month: 12, day: 31 };
+
 export const periodToInclusiveRange = (
     period?: DatePeriod,
 ): { start: CalendarDay; end: CalendarDay } | undefined => {
@@ -106,8 +109,8 @@ export const periodToInclusiveRange = (
         return undefined;
     }
     if (period.start?.year !== undefined || period.end?.year !== undefined) {
-        const start = fillStart(period.start ?? period.end ?? {});
-        const end = fillEnd(period.end ?? period.start ?? {});
+        const start = period.start?.year !== undefined ? fillStart(period.start) : OPEN_START;
+        const end = period.end?.year !== undefined ? fillEnd(period.end) : OPEN_END;
         if (!start || !end) {
             return undefined;
         }
@@ -286,6 +289,25 @@ export const formatDateLabel = (date: ExtractedDate): string | undefined => {
 };
 
 export const formatPeriodLabel = (period?: DatePeriod): string => {
+    if (period && (period.start?.year !== undefined || period.end?.year !== undefined)) {
+        const startLabel = period.start?.year !== undefined ? formatDateLabel(period.start) : undefined;
+        const endLabel = period.end?.year !== undefined ? formatDateLabel(period.end) : undefined;
+        if (startLabel && endLabel) {
+            const range = periodToInclusiveRange(period);
+            const from = range ? formatDateLabel(range.start) : startLabel;
+            const to = range ? formatDateLabel(range.end) : endLabel;
+            if (from && to && from !== to) {
+                return `${from} – ${to}`;
+            }
+            return from ?? to ?? "Dated period";
+        }
+        if (startLabel) {
+            return `From ${startLabel}`;
+        }
+        if (endLabel) {
+            return `To ${endLabel}`;
+        }
+    }
     const range = periodToInclusiveRange(period);
     if (!range) {
         return "Any time";

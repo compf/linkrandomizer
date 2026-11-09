@@ -79,6 +79,18 @@
 
       <mat-tab>
         <ng-template mat-tab-label>
+          <mat-icon class="tab-icon">smart_display</mat-icon>
+          YouTube
+        </ng-template>
+        <ng-template matTabContent>
+          <div class="tab-panel">
+            <app-youtube-randomizer></app-youtube-randomizer>
+          </div>
+        </ng-template>
+      </mat-tab>
+
+      <mat-tab>
+        <ng-template mat-tab-label>
           <mat-icon class="tab-icon">lightbulb</mat-icon>
           Random Facts
         </ng-template>

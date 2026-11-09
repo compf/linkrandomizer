@@ -1,9 +1,13 @@
 dist
 node_modules
+*.tsbuildinfo
 .vscode/**
 src/config.ts
 *.js
 packages/main/src/config.ts
+packages/main/src/**/*.js.map
+packages/main/src/**/*.d.ts
+packages/main/src/**/*.d.ts.map
 packages/frontend/.angular
 packages/main/src/data/internal-websites.ts
 packages/main/data/
